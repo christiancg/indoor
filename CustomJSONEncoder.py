@@ -5,12 +5,14 @@ from datetime import datetime,time
 
 class CustomJSONEncoder(json.JSONEncoder):
 	def default(self,obj):
+		result = []
 		try:
 			if hasattr(obj, '__iter__'):
 				for x in obj:
-					return self.xitem(x)
+					result.append(self.xitem(x))
 			else:
 				return self.xitem(obj)
+			return result
 		except Exception,ex:
 			print traceback.format_exc()
 			return ex

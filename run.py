@@ -3,6 +3,7 @@ from flask import Flask,jsonify,request, make_response
 import json
 import traceback
 from gpiotasks import GpioLuz,GpioBomba,GpioFanIntra,GpioFanExtra
+from sqlalchemy.orm import joinedload
 import pigpio
 pi = pigpio.pi()
 import DHT22
@@ -16,11 +17,14 @@ from modelos import db
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
-def jsonify(*args,**kwargs):
-	return app.response_class(json.dumps(dict(*args,**kwargs),cls=CustomJSONEncoder),mimetype='application/json')
+#def jsonify(*args,**kwargs):
+#	return app.response_class(json.dumps(dict(*args,**kwargs),cls=CustomJSONEncoder),mimetype='application/json')
 	
 def devolverJson(obj):
-	return jsonify(encoder.default(obj))
+	if obj is None:
+		return jsonify({})
+	else:
+		return str(encoder.default(obj))
 
 def saveConfigToDb(id,desc):
 	try:
@@ -32,7 +36,7 @@ def saveConfigToDb(id,desc):
 		
 def saveEventToDb(desc,configgpio):
 	try:
-		toadd = modelos.Evento(datetime.now(),desc,configgpio)
+		toadd = modelos.Evento(datetime.datetime.now(),desc,configgpio)
 		db.session.add(toadd)
 		db.session.commit()
 	except Exception, ex:
@@ -171,6 +175,33 @@ def obtenerProgramaciones():
 	try:
 		lprog = modelos.Programacion.query.filter(modelos.Programacion.habilitado==True).all()
 		return devolverJson(lprog)
+	except Exception,ex:
+		print traceback.format_exc()
+		return ex
+		
+@app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>')
+@app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>/<tipoEvento>')
+def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
+	try:
+		inicio = None
+		fin = None
+		try:
+			inicio = datetime.datetime.strptime(fechaInicio, '%d-%m-%YT%H:%M:%S') 
+			fin = datetime.datetime.strptime(fechaFin, '%d-%m-%YT%H:%M:%S')
+		except Exception:
+			print traceback.format_exc()
+			error = { 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' }
+			return jsonify(error)
+		leventos = None
+		if tipoEvento == '':
+			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora > fechaFin).all()
+		else:
+			#leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora < fechaFin).join(modelos.ConfigGpio,modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
+			leventos = db.session.query(modelos.Evento).filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora < fechaFin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
+		if leventos is None:
+			return jsonify([])
+		else:
+			return devolverJson(leventos)
 	except Exception,ex:
 		print traceback.format_exc()
 		return ex
