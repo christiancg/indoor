@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://///home/pi/Documents/proyectos/db/indoor.db'
 
 import modelos
-from modelos import db
+from modelos import db, Evento
 
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
@@ -194,10 +194,9 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 			return jsonify(error)
 		leventos = None
 		if tipoEvento == '':
-			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora > fechaFin).all()
+			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).all()
 		else:
-			#leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora < fechaFin).join(modelos.ConfigGpio,modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
-			leventos = db.session.query(modelos.Evento).filter(modelos.Evento.fechayhora > fechaInicio).filter(modelos.Evento.fechayhora < fechaFin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
+			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
 		if leventos is None:
 			return jsonify([])
 		else:
