@@ -1,5 +1,5 @@
 import datetime
-from flask import Flask,jsonify,request, make_response
+from flask import Flask,jsonify,request, make_response, Response
 import json
 import traceback
 from gpiotasks import GpioLuz,GpioBomba,GpioFanIntra,GpioFanExtra
@@ -19,6 +19,9 @@ encoder = CustomJSONEncoder()
 
 #def jsonify(*args,**kwargs):
 #	return app.response_class(json.dumps(dict(*args,**kwargs),cls=CustomJSONEncoder),mimetype='application/json')
+
+def responder(obj,status):
+	return Response(response=obj,status=status,mimetype='application/json') 
 	
 def devolverJson(obj):
 	if obj is None:
@@ -82,39 +85,41 @@ except Exception, ex:
 
 
 @app.route('/test')
-def hello():
-    return "todo ok!"
+def test():
+    return responder("todo ok!",200)
     
 @app.route('/obtenerConfiguraciones')
 def getConfig():
 	try:
 		lconfig = modelos.ConfigGpio.query.all()
-		return devolverJson(lconfig)
+		return responder(devolverJson(lconfig),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return jsonify(ex)
+		return responder(ex,500)
     
 @app.route('/prenderLuz')
 def prenderLuz():
 	try:
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		saveEventToDb('luz prendida', config)
+		status = 'luz prendida'
+		saveEventToDb(status, config)
 		gpioluz.prenderLuz()
-		return 'luz prendida'
+		return responder(str({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 		
 @app.route('/apagarLuz')
 def apagarLuz():
 	try:
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		saveEventToDb('luz apagada', config)
+		status = 'luz apagada'
+		saveEventToDb(status, config)
 		gpioluz.apagarLuz()
-		return 'luz apagada'
+		return responder(str({'resultado' : status}),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 		
 @app.route('/regarSegundos/<segs>')
 def regarSegundos(segs):
@@ -123,10 +128,10 @@ def regarSegundos(segs):
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='bomba').first()
 		saveEventToDb(desc, config)
 		gpiobomba.regarSegundos(segs)
-		return desc
+		return responder(str({'resultado' : desc}),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 		
 @app.route('/humedadYTemperatura')
 def humedadYTemperatura():
@@ -136,11 +141,12 @@ def humedadYTemperatura():
 		hum = gpiohumytemp.humidity()
 		devolver = { 'humedad' : hum , 'temperatura' : temp }
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
-		saveEventToDb(str(devolver), config)
-		return jsonify(devolver)
+		strresponse = str(devolver)
+		saveEventToDb(strresponse, config)
+		return responder(strresponse,200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 
 
 @app.route('/agregarProgramacion', methods=['POST'])
@@ -165,19 +171,19 @@ def addProgramacion():
 			nuevaProg = modelos.Programacion(desc,config,horario1)
 		db.session.add(nuevaProg)
 		db.session.commit()
-		return 'ok'
+		return responder(str({'resultado' : 'ok'}),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 
 @app.route('/obtenerProgramaciones')
 def obtenerProgramaciones():
 	try:
 		lprog = modelos.Programacion.query.filter(modelos.Programacion.habilitado==True).all()
-		return devolverJson(lprog)
+		return responder(devolverJson(lprog),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 		
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>')
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>/<tipoEvento>')
@@ -191,22 +197,22 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 		except Exception:
 			print traceback.format_exc()
 			error = { 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' }
-			return jsonify(error)
+			return make_response(jsonify(error),400)
 		if inicio > fin:
 			error = { 'error' : 'La fecha de inicio no puede ser inferior a la fecha de fin' }
-			return jsonify(error)
+			return make_response(jsonify(error),400)
 		leventos = None
 		if tipoEvento == '':
 			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).all()
 		else:
 			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
 		if leventos is None:
-			return jsonify([])
+			return make_response(jsonify([]),200)
 		else:
-			return devolverJson(leventos)
+			return responder(devolverJson(leventos),200)
 	except Exception,ex:
 		print traceback.format_exc()
-		return ex
+		return responder(ex,500)
 		
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=9090)
