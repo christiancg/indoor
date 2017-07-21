@@ -192,6 +192,9 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 			print traceback.format_exc()
 			error = { 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' }
 			return jsonify(error)
+		if inicio > fin:
+			error = { 'error' : 'La fecha de inicio no puede ser inferior a la fecha de fin' }
+			return jsonify(error)
 		leventos = None
 		if tipoEvento == '':
 			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).all()
