@@ -50,10 +50,10 @@ class GpioFanIntra:
 		GPIO.setmode(GPIO.BCM)            # choose BCM or BOARD  
 		GPIO.setup(self.GPIO_FAN_INTRA, GPIO.OUT) # set a port/pin as an output   
 	
-	def prenderFanIntra():
+	def prenderFanIntra(self):
 		GPIO.output(self.GPIO_FAN_INTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 	
-	def apagarFanIntra():
+	def apagarFanIntra(self):
 		GPIO.output(self.GPIO_FAN_INTRA, True)
 
 class GpioFanExtra:
@@ -68,8 +68,8 @@ class GpioFanExtra:
 		GPIO.setmode(GPIO.BCM)            # choose BCM or BOARD  
 		GPIO.setup(self.GPIO_FAN_EXTRA, GPIO.OUT) # set a port/pin as an output   
 	
-	def prenderFanExtra():
+	def prenderFanExtra(self):
 		GPIO.output(self.GPIO_FAN_EXTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 		
-	def apagarFanExtra():
+	def apagarFanExtra(self):
 		GPIO.output(self.GPIO_FAN_EXTRA, True)

@@ -77,7 +77,7 @@ try:
 		saveConfigToDb(17,'fanintra')
 		gpiofanintra = GpioFanIntra(17)
 	if gpiofanextra is None:
-		saveConfigToDb(27,'fanextra')
+		saveConfigToDb(18,'fanextra')
 		gpiofanextra = GpioFanExtra(27)
 except Exception, ex:
 	print traceback.format_exc()
@@ -144,6 +144,54 @@ def humedadYTemperatura():
 		strresponse = str(devolver)
 		saveEventToDb(strresponse, config)
 		return responder(strresponse,200)
+	except Exception,ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+
+@app.route('/prenderFanIntra')
+def prenderFanIntra():
+	try:
+		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
+		status = 'Fan intracion prendido'
+		saveEventToDb(status, config)
+		gpiofanintra.prenderFanIntra()
+		return responder(str({'resultado' : status}),200)
+	except Exception, ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+		
+@app.route('/apagarFanIntra')
+def apagarFanIntra():
+	try:
+		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
+		status = 'Fan intracion apagado'
+		saveEventToDb(status, config)
+		gpiofanintra.apagarFanIntra()
+		return responder(str({'resultado' : status}),200)
+	except Exception,ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+		
+@app.route('/prenderFanExtra')
+def prenderFanExtra():
+	try:
+		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
+		status = 'Fan extraccion prendido'
+		saveEventToDb(status, config)
+		gpiofanextra.prenderFanExtra()
+		return responder(str({'resultado' : status}),200)
+	except Exception, ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+		
+@app.route('/apagarFanExtra')
+def apagarFanExtra():
+	try:
+		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
+		status = 'Fan extraccion apagado'
+		saveEventToDb(status, config)
+		gpiofanextra.apagarFanExtra()
+		return responder(str({'resultado' : status}),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
