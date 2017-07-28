@@ -140,7 +140,7 @@ def humedadYTemperatura():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
 		strresponse = str(devolver)
 		saveEventToDb(strresponse, config)
-		return responder(strresponse,200)
+		return responder(json.dumps(devolver),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
