@@ -2,17 +2,15 @@ import datetime
 from flask import Flask,jsonify,request, make_response, Response
 import json
 import traceback
-from gpiotasks import GpioLuz,GpioBomba,GpioFanIntra,GpioFanExtra
+from gpiotasks import GpioLuz,GpioBomba,GpioFanIntra,GpioFanExtra,GpioHumYTemp
 from sqlalchemy.orm import joinedload
-import pigpio
-pi = pigpio.pi()
-import DHT22
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://///home/pi/Documents/proyectos/db/indoor.db'
 
 import modelos
 from modelos import db, Evento
+from corredortareas import CorredorTareas
 
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
@@ -59,7 +57,7 @@ try:
 		elif config.desc == 'bomba':
 			gpiobomba = GpioBomba(config.id)
 		elif config.desc == 'humytemp':
-			gpiohumytemp = DHT22.sensor(pi,config.id)
+			gpiohumytemp = GpioHumYTemp(config.id)
 		elif config.desc == 'fanintra':
 			gpiofanintra = GpioFanIntra(config.id)
 		elif config.desc == 'fanextra':
@@ -82,7 +80,8 @@ try:
 except Exception, ex:
 	print traceback.format_exc()
 	
-
+threadcorredor = CorredorTareas(db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
+threadcorredor.start()
 
 @app.route('/test')
 def test():
@@ -136,9 +135,7 @@ def regarSegundos(segs):
 @app.route('/humedadYTemperatura')
 def humedadYTemperatura():
 	try:
-		gpiohumytemp.trigger()
-		temp = gpiohumytemp.temperature()
-		hum = gpiohumytemp.humidity()
+		temp, hum = gpiohumytemp.medir()
 		devolver = { 'humedad' : hum , 'temperatura' : temp }
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
 		strresponse = str(devolver)
@@ -206,20 +203,21 @@ def addProgramacion():
 		if config is None:
 			return 'No se encontro la tarea a programar'
 		desc = dataDict['desc']
+		prender = dataDict['prender']
 		strhorario1 = dataDict['horario1']
 		horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
 		if 'horario2' in dataDict:
 			strhorario2 = dataDict['horario2']
 			horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
 			if horario2 > horario1:
-				nuevaProg = modelos.Programacion(desc,config,horario1,horario2)
+				nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
 			else:
 				return 'el horario2 debe ser mayor a horario1'
 		else:
-			nuevaProg = modelos.Programacion(desc,config,horario1)
+			nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 		db.session.add(nuevaProg)
 		db.session.commit()
-		return responder(str({'resultado' : 'ok'}),200)
+		return responder(json.dumps({'resultado': 'ok' }),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)

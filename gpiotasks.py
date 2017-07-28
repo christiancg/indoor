@@ -1,5 +1,7 @@
 import RPi.GPIO as GPIO           # import RPi.GPIO module  
 import time
+import pigpio
+import DHT22
 
 class GpioLuz:
 	GPIO_LUZ = 0
@@ -73,3 +75,20 @@ class GpioFanExtra:
 		
 	def apagarFanExtra(self):
 		GPIO.output(self.GPIO_FAN_EXTRA, True)
+
+class GpioHumYTemp:
+	sensor = None
+	
+	def __init__(self,hum_y_temp):
+		if type(hum_y_temp) is not int:
+			raise TypeError('El valor del pin GPIO para el medidor de humedad y temperatura debe ser un entero natural')
+		elif hum_y_temp > 40 or hum_y_temp < 1:
+			raise ValueError('El valor del pin para el el medidor de humedad y temperatura no puede ser mayor a 40 ni menor a 1')
+		pi = pigpio.pi()
+		self.sensor = DHT22.sensor(pi,hum_y_temp)
+	
+	def medir(self):
+		self.sensor.trigger()
+		temp = self.sensor.temperature()
+		hum = self.sensor.humidity()
+		return temp, hum 
