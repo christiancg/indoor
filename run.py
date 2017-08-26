@@ -21,11 +21,12 @@ encoder = CustomJSONEncoder()
 def responder(obj,status):
 	return Response(response=obj,status=status,mimetype='application/json') 
 	
-def devolverJson(obj):
+def devolverJson(obj,status):
 	if obj is None:
-		return jsonify({})
+		return responder(jsonify({}),status)
 	else:
-		return str(encoder.default(obj))
+		devolver = json.dumps(encoder.default(obj))
+		return responder(devolver,status)
 
 def saveConfigToDb(id,desc):
 	try:
@@ -91,7 +92,7 @@ def test():
 def getConfig():
 	try:
 		lconfig = modelos.ConfigGpio.query.all()
-		return responder(devolverJson(lconfig),200)
+		return devolverJson(lconfig,200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -226,7 +227,7 @@ def addProgramacion():
 def obtenerProgramaciones():
 	try:
 		lprog = modelos.Programacion.query.filter(modelos.Programacion.habilitado==True).all()
-		return responder(devolverJson(lprog),200)
+		return devolverJson(lprog,200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -255,7 +256,7 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 		if leventos is None:
 			return make_response(jsonify([]),200)
 		else:
-			return responder(devolverJson(leventos),200)
+			return devolverJson(leventos,200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
