@@ -103,7 +103,7 @@ def prenderLuz():
 		status = 'luz prendida'
 		saveEventToDb(status, config)
 		gpioluz.prenderLuz()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -115,7 +115,7 @@ def apagarLuz():
 		status = 'luz apagada'
 		saveEventToDb(status, config)
 		gpioluz.apagarLuz()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -127,7 +127,7 @@ def regarSegundos(segs):
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='bomba').first()
 		saveEventToDb(desc, config)
 		gpiobomba.regarSegundos(segs)
-		return responder(str({'resultado' : desc}),200)
+		return responder(json.dumps({'resultado' : desc}),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -152,7 +152,7 @@ def prenderFanIntra():
 		status = 'Fan intracion prendido'
 		saveEventToDb(status, config)
 		gpiofanintra.prenderFanIntra()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -164,7 +164,7 @@ def apagarFanIntra():
 		status = 'Fan intracion apagado'
 		saveEventToDb(status, config)
 		gpiofanintra.apagarFanIntra()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -176,7 +176,7 @@ def prenderFanExtra():
 		status = 'Fan extraccion prendido'
 		saveEventToDb(status, config)
 		gpiofanextra.prenderFanExtra()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -188,7 +188,7 @@ def apagarFanExtra():
 		status = 'Fan extraccion apagado'
 		saveEventToDb(status, config)
 		gpiofanextra.apagarFanExtra()
-		return responder(str({'resultado' : status}),200)
+		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
@@ -201,7 +201,7 @@ def addProgramacion():
 		dataDict = json.loads(data)
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc==dataDict['configgpio']).first()
 		if config is None:
-			return 'No se encontro la tarea a programar'
+			return responder(json.dumps({'resultado': 'No se encontro la tarea a programar'}),400)
 		desc = dataDict['desc']
 		prender = dataDict['prender']
 		strhorario1 = dataDict['horario1']
