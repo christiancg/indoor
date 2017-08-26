@@ -25,8 +25,9 @@ class CorredorTareas(threading.Thread):
 		while True:
 			try:
 				time.sleep(self.segspolling)
-				queryhorariodesde = datetime.datetime.now() - datetime.timedelta(seconds=self.segspolling)
+				queryhorariodesde = datetime.datetime.now().time()
 				queryhorariohasta = datetime.datetime.now() + datetime.timedelta(seconds=self.segspolling)
+				queryhorariohasta = queryhorariohasta.time()
 				lprog = modelos.Programacion.query.filter(modelos.Programacion.habilitado==True).filter(modelos.Programacion.horario1 >= queryhorariodesde).filter(modelos.Programacion.horario1 <= queryhorariohasta).all()
 				for prog in lprog:
 					print 'encontro programacion para: ' + prog.configgpio.desc
@@ -51,6 +52,15 @@ class CorredorTareas(threading.Thread):
 							self.gpiofanextra.prenderFanExtra()
 						else:
 							self.gpiofanextra.apagarFanExtra()
+					saveEventToDb(prog)
 			except Exception,ex:
 				print traceback.format_exc()
 		
+def saveEventToDb(prog):
+	try:
+		descripcion_evento = 'Se ejecuto programacion: ' + prog.desc
+		toadd = modelos.Evento(datetime.datetime.now(),descripcion_evento,prog.configgpio)
+		modelos.db.session.add(toadd)
+		modelos.db.session.commit()
+	except Exception, ex:
+		print traceback.format_exc()
