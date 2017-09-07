@@ -51,7 +51,8 @@ class GpioFanIntra:
 		self.GPIO_FAN_INTRA = fan_intra
 		GPIO.setmode(GPIO.BCM)            # choose BCM or BOARD  
 		GPIO.setup(self.GPIO_FAN_INTRA, GPIO.OUT) # set a port/pin as an output   
-	
+		GPIO.output(self.GPIO_FAN_INTRA, True)
+		
 	def prenderFanIntra(self):
 		GPIO.output(self.GPIO_FAN_INTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 	
@@ -69,7 +70,8 @@ class GpioFanExtra:
 		self.GPIO_FAN_EXTRA = fan_extra
 		GPIO.setmode(GPIO.BCM)            # choose BCM or BOARD  
 		GPIO.setup(self.GPIO_FAN_EXTRA, GPIO.OUT) # set a port/pin as an output   
-	
+		GPIO.output(self.GPIO_FAN_EXTRA, True)
+		
 	def prenderFanExtra(self):
 		GPIO.output(self.GPIO_FAN_EXTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 		
