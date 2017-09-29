@@ -1,11 +1,12 @@
-from __main__ import app
+#import run
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.inspection import inspect
 #from sqlalchemy.ext.declarative import DeclarativeMeta
 
 #from CustomJSONEncoder import CustomJSONEncoder
 
-db = SQLAlchemy(app)
+#db = SQLAlchemy(run.app)
+db = SQLAlchemy()
 
 
 #class Serializer(object):
@@ -66,4 +67,4 @@ class Programacion(db.Model):
 	def __repr__(self):
 		return '<Programacion %r>' % self.id
 		
-db.create_all()
+

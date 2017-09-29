@@ -3,14 +3,13 @@ from flask import Flask,jsonify,request, make_response, Response
 import json
 import traceback
 import time
-from gpiotasks import GpioLuz,GpioBomba,GpioFanIntra,GpioFanExtra,GpioHumYTemp
+import gpiotasks
 from sqlalchemy.orm import joinedload
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://///home/pi/Documents/proyectos/db/indoor.db'
 
 import modelos
-from modelos import db, Evento
 from corredortareas import CorredorTareas
 
 from CustomJSONEncoder import CustomJSONEncoder
@@ -32,24 +31,16 @@ def devolverJson(obj,status):
 def saveConfigToDb(id,desc):
 	try:
 		toadd = modelos.ConfigGpio(id,desc)
-		db.session.add(toadd)
-		db.session.commit()
+		modelos.db.session.add(toadd)
+		modelos.db.session.commit()
 	except Exception, ex:
 		print traceback.format_exc()
 		
 def saveEventToDb(desc,configgpio):
 	try:
 		toadd = modelos.Evento(datetime.datetime.now(),desc,configgpio)
-		db.session.add(toadd)
-		db.session.commit()
-	except Exception, ex:
-		print traceback.format_exc()
-		
-def updateGpioStatus(status,configgpio):
-	try:
-		toupdate = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.id==configgpio.id).first()
-		toupdate.estado = status
-		db.session.commit()
+		modelos.db.session.add(toadd)
+		modelos.db.session.commit()
 	except Exception, ex:
 		print traceback.format_exc()
 
@@ -59,48 +50,55 @@ gpiohumytemp = None
 gpiofanintra = None
 gpiofanextra = None
 
-try:
-	lconfig = modelos.ConfigGpio.query.all()
-	for config in lconfig:
-		if config.desc == 'luz':
-			gpioluz = GpioLuz(config.id)
-			if config.estado:
-				time.sleep(5)
-				gpioluz.prenderLuz()
-		elif config.desc == 'bomba':
-			gpiobomba = GpioBomba(config.id)
-		elif config.desc == 'humytemp':
-			gpiohumytemp = GpioHumYTemp(config.id)
-		elif config.desc == 'fanintra':
-			gpiofanintra = GpioFanIntra(config.id)
-			if config.estado:
-				time.sleep(5)
-				gpiofanintra.prenderFanIntra()
-		elif config.desc == 'fanextra':
-			gpiofanextra = GpioFanExtra(config.id)
-			if config.estado:
-				time.sleep(5)
-				gpiofanextra.prenderFanExtra()
-	if gpioluz is None:
-		saveConfigToDb(13,'luz')
-		gpioluz = GpioLuz(13)
-	if gpiobomba is None:
-		saveConfigToDb(19,'bomba')
-		gpiobomba = GpioBomba(19)
-	if gpiohumytemp is None:
-		saveConfigToDb(4,'humytemp')
-		gpiohumytemp = GpioHumYTemp(4)
-	if gpiofanintra is None:
-		saveConfigToDb(17,'fanintra')
-		gpiofanintra = GpioFanIntra(17)
-	if gpiofanextra is None:
-		saveConfigToDb(18,'fanextra')
-		gpiofanextra = GpioFanExtra(27)
-except Exception, ex:
-	print traceback.format_exc()
-	
-threadcorredor = CorredorTareas(db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
-threadcorredor.start()
+with app.app_context():
+	modelos.db.init_app(app)
+	modelos.db.create_all()
+	#primero configuracion de las interfaces fisicas
+	try:
+		lconfig = modelos.ConfigGpio.query.all()
+		for config in lconfig:
+			if config.desc == 'luz':
+				gpioluz = gpiotasks.GpioLuz(config.id)
+				if config.estado:
+					time.sleep(5)
+					gpioluz.prenderLuz()
+			elif config.desc == 'bomba':
+				gpiobomba = gpiotasks.GpioBomba(config.id)
+			elif config.desc == 'humytemp':
+				gpiohumytemp = gpiotasks.GpioHumYTemp(config.id)
+			elif config.desc == 'fanintra':
+				gpiofanintra = gpiotasks.GpioFanIntra(config.id)
+				if config.estado:
+					time.sleep(5)
+					gpiofanintra.prenderFanIntra()
+			elif config.desc == 'fanextra':
+				gpiofanextra = gpiotasks.GpioFanExtra(config.id)
+				if config.estado:
+					time.sleep(5)
+					gpiofanextra.prenderFanExtra()
+		if gpioluz is None:
+			saveConfigToDb(13,'luz')
+			gpioluz = gpiotasks.GpioLuz(13)
+		if gpiobomba is None:
+			saveConfigToDb(19,'bomba')
+			gpiobomba = gpiotasks.GpioBomba(19)
+		if gpiohumytemp is None:
+			saveConfigToDb(4,'humytemp')
+			gpiohumytemp = gpiotasks.GpioHumYTemp(4)
+		if gpiofanintra is None:
+			saveConfigToDb(17,'fanintra')
+			gpiofanintra = gpiotasks.GpioFanIntra(17)
+		if gpiofanextra is None:
+			saveConfigToDb(18,'fanextra')
+			gpiofanextra = gpiotasks.GpioFanExtra(27)
+	except Exception, ex:
+		print traceback.format_exc()
+	#lueg configuracion del corredor de tareas
+	try:
+		threadcorredor = CorredorTareas(app,modelos.db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
+		threadcorredor.start()
+	except Exception, ex:
+		print traceback.format_exc()
 
 @app.route('/test')
 def test():
@@ -121,7 +119,6 @@ def prenderLuz():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
 		status = 'luz prendida'
 		saveEventToDb(status, config)
-		updateGpioStatus(True,config)
 		gpioluz.prenderLuz()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
@@ -134,7 +131,6 @@ def apagarLuz():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
 		status = 'luz apagada'
 		saveEventToDb(status, config)
-		updateGpioStatus(False,config)
 		gpioluz.apagarLuz()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
@@ -172,7 +168,6 @@ def prenderFanIntra():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
 		status = 'Fan intracion prendido'
 		saveEventToDb(status, config)
-		updateGpioStatus(True,config)
 		gpiofanintra.prenderFanIntra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
@@ -185,7 +180,6 @@ def apagarFanIntra():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
 		status = 'Fan intracion apagado'
 		saveEventToDb(status, config)
-		updateGpioStatus(False,config)
 		gpiofanintra.apagarFanIntra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
@@ -198,7 +192,6 @@ def prenderFanExtra():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
 		status = 'Fan extraccion prendido'
 		saveEventToDb(status, config)
-		updateGpioStatus(True,config)
 		gpiofanextra.prenderFanExtra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
@@ -211,7 +204,6 @@ def apagarFanExtra():
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
 		status = 'Fan extraccion apagado'
 		saveEventToDb(status, config)
-		updateGpioStatus(False,config)
 		gpiofanextra.apagarFanExtra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception,ex:
@@ -240,8 +232,8 @@ def addProgramacion():
 				return 'el horario2 debe ser mayor a horario1'
 		else:
 			nuevaProg = modelos.Programacion(desc,config,prender,horario1)
-		db.session.add(nuevaProg)
-		db.session.commit()
+		modelos.db.session.add(nuevaProg)
+		modelos.db.session.commit()
 		return responder(json.dumps({'resultado': 'ok' }),200)
 	except Exception,ex:
 		print traceback.format_exc()

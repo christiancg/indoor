@@ -2,6 +2,15 @@ import RPi.GPIO as GPIO           # import RPi.GPIO module
 import time
 import pigpio
 import DHT22
+import modelos
+
+def updateGpioStatus(status,configgpio_id):
+	try:
+		toupdate = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.id==configgpio_id).first()
+		toupdate.estado = status
+		modelos.db.session.commit()
+	except Exception, ex:
+		print traceback.format_exc()
 
 class GpioLuz:
 	GPIO_LUZ = 0
@@ -17,9 +26,11 @@ class GpioLuz:
 		GPIO.output(self.GPIO_LUZ, True)
 	
 	def prenderLuz(self):
+		updateGpioStatus(True,self.GPIO_LUZ)
 		GPIO.output(self.GPIO_LUZ, False)       # set port/pin value to 1/GPIO.HIGH/True  
 
 	def apagarLuz(self):
+		updateGpioStatus(False,self.GPIO_LUZ)
 		GPIO.output(self.GPIO_LUZ, True)       # set port/pin value to 0/GPIO.LOW/False 
 
 class GpioBomba:
@@ -54,9 +65,11 @@ class GpioFanIntra:
 		GPIO.output(self.GPIO_FAN_INTRA, True)
 		
 	def prenderFanIntra(self):
+		updateGpioStatus(True,self.GPIO_FAN_INTRA)
 		GPIO.output(self.GPIO_FAN_INTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 	
 	def apagarFanIntra(self):
+		updateGpioStatus(False,self.GPIO_FAN_INTRA)
 		GPIO.output(self.GPIO_FAN_INTRA, True)
 
 class GpioFanExtra:
@@ -73,9 +86,11 @@ class GpioFanExtra:
 		GPIO.output(self.GPIO_FAN_EXTRA, True)
 		
 	def prenderFanExtra(self):
+		updateGpioStatus(True,self.GPIO_FAN_EXTRA)
 		GPIO.output(self.GPIO_FAN_EXTRA, False)       # set port/pin value to 1/GPIO.HIGH/True  
 		
 	def apagarFanExtra(self):
+		updateGpioStatus(False,self.GPIO_FAN_EXTRA)
 		GPIO.output(self.GPIO_FAN_EXTRA, True)
 
 class GpioHumYTemp:
