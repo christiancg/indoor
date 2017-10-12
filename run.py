@@ -225,11 +225,14 @@ def addProgramacion():
 		horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
 		if 'horario2' in dataDict:
 			strhorario2 = dataDict['horario2']
-			horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
-			if horario2 > horario1:
-				nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
+			if strhorario2:
+				horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
+				if horario2 > horario1:
+					nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
+				else:
+					return 'el horario2 debe ser mayor a horario1'
 			else:
-				return 'el horario2 debe ser mayor a horario1'
+				nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 		else:
 			nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 		modelos.db.session.add(nuevaProg)
