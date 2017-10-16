@@ -5,6 +5,8 @@ import traceback
 import time
 import gpiotasks
 from sqlalchemy.orm import joinedload
+import distutils
+from distutils import util
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://///home/pi/Documents/proyectos/db/indoor.db'
@@ -113,27 +115,45 @@ def getConfig():
 		print traceback.format_exc()
 		return responder(ex,500)
     
-@app.route('/prenderLuz')
-def prenderLuz():
+#@app.route('/prenderLuz')
+#def prenderLuz():
+	#try:
+		#config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
+		#status = 'luz prendida'
+		#saveEventToDb(status, config)
+		#gpioluz.prenderLuz()
+		#return responder(json.dumps({'resultado' : status}),200)
+	#except Exception, ex:
+		#print traceback.format_exc()
+		#return responder(ex,500)
+		
+#@app.route('/apagarLuz')
+#def apagarLuz():
+	#try:
+		#config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
+		#status = 'luz apagada'
+		#saveEventToDb(status, config)
+		#gpioluz.apagarLuz()
+		#return responder(json.dumps({'resultado' : status}),200)
+	#except Exception,ex:
+		#print traceback.format_exc()
+		#return responder(ex,500)
+		
+@app.route('/luz/<prender>')
+def prenderLuz(prender):
 	try:
+		bprender = util.strtobool(prender)
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		status = 'luz prendida'
+		status = ''
+		if bprender:
+			status = 'luz prendida'
+			gpioluz.prenderLuz()
+		else:
+			status = 'luz apagada'
+			gpioluz.apagarLuz()
 		saveEventToDb(status, config)
-		gpioluz.prenderLuz()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
-		print traceback.format_exc()
-		return responder(ex,500)
-		
-@app.route('/apagarLuz')
-def apagarLuz():
-	try:
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		status = 'luz apagada'
-		saveEventToDb(status, config)
-		gpioluz.apagarLuz()
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
 		
