@@ -114,33 +114,9 @@ def getConfig():
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
-    
-#@app.route('/prenderLuz')
-#def prenderLuz():
-	#try:
-		#config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		#status = 'luz prendida'
-		#saveEventToDb(status, config)
-		#gpioluz.prenderLuz()
-		#return responder(json.dumps({'resultado' : status}),200)
-	#except Exception, ex:
-		#print traceback.format_exc()
-		#return responder(ex,500)
-		
-#@app.route('/apagarLuz')
-#def apagarLuz():
-	#try:
-		#config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		#status = 'luz apagada'
-		#saveEventToDb(status, config)
-		#gpioluz.apagarLuz()
-		#return responder(json.dumps({'resultado' : status}),200)
-	#except Exception,ex:
-		#print traceback.format_exc()
-		#return responder(ex,500)
 		
 @app.route('/luz/<prender>')
-def prenderLuz(prender):
+def luz(prender):
 	try:
 		bprender = util.strtobool(prender)
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
@@ -181,55 +157,42 @@ def humedadYTemperatura():
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
-
-@app.route('/prenderFanIntra')
-def prenderFanIntra():
+		
+@app.route('/fanIntra/<prender>')
+def fanIntra(prender):
 	try:
+		bprender = util.strtobool(prender)
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
-		status = 'Fan intracion prendido'
+		status = ''
+		if bprender:
+			status = 'Fan intracion prendido'
+			gpiofanintra.prenderFanIntra()
+		else:
+			status = 'Fan intracion apagado'
+			gpiofanintra.apagarFanIntra()		
 		saveEventToDb(status, config)
-		gpiofanintra.prenderFanIntra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
 		return responder(ex,500)
 		
-@app.route('/apagarFanIntra')
-def apagarFanIntra():
+@app.route('/fanExtra/<prender>')
+def fanExtra(prender):
 	try:
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
-		status = 'Fan intracion apagado'
-		saveEventToDb(status, config)
-		gpiofanintra.apagarFanIntra()
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception,ex:
-		print traceback.format_exc()
-		return responder(ex,500)
-		
-@app.route('/prenderFanExtra')
-def prenderFanExtra():
-	try:
+		bprender = util.strtobool(prender)
 		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
-		status = 'Fan extraccion prendido'
+		status = ''
+		if bprender:
+			status = 'Fan extraccion prendido'
+			gpiofanextra.prenderFanExtra()
+		else:
+			status = 'Fan extraccion apagado'
+			gpiofanextra.apagarFanExtra()	
 		saveEventToDb(status, config)
-		gpiofanextra.prenderFanExtra()
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
 		print traceback.format_exc()
 		return responder(ex,500)
-		
-@app.route('/apagarFanExtra')
-def apagarFanExtra():
-	try:
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
-		status = 'Fan extraccion apagado'
-		saveEventToDb(status, config)
-		gpiofanextra.apagarFanExtra()
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception,ex:
-		print traceback.format_exc()
-		return responder(ex,500)
-
 
 @app.route('/agregarProgramacion', methods=['POST'])
 def addProgramacion():
