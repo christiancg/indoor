@@ -24,6 +24,9 @@ $ sudo apt-get install libatlas-base-dev gfortran
 ## Instalar herramientas de desarrollo de python
 $ sudo apt-get install python2.7-dev python3-dev
 
+## Instalar GTK por si queremos mostrar cosas en la pantalla
+$ sudo apt-get install libgtk2.0-dev
+
 ## Instalar numpy para opencv
 $ pip install numpy
 
