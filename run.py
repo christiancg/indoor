@@ -14,6 +14,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite://///home/pi/Documents/proyectos
 import modelos
 from corredortareas import CorredorTareas
 
+from camara import Camara
+
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
@@ -259,6 +261,26 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 			return make_response(jsonify([]),200)
 		else:
 			return devolverJson(leventos,200)
+	except Exception,ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+		
+@app.route('/obtenerImagenIndoor')
+def obtenerImagenIndoor():
+	try:
+		result = {}
+		with Camara(0,30) as cam:
+			tomo, imagen = cam.obtenerImagen()
+			result['status'] = tomo
+			if tomo:
+				date = str(datetime.datetime.now())
+				result = { 'status':tomo, 'b64image': imagen, 'date': date }
+			else:
+				result = { 'status':tomo, 'msg': imagen }
+		if result['status']:
+			return responder(json.dumps(result),200)
+		else:
+			return responder(json.dumps(result),500)
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
