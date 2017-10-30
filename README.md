@@ -36,7 +36,7 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 * unzip opencv.zip
 * wget -O opencv_contrib.zip https://github.com/Itseez/opencv_contrib/archive/3.0.0.zip
 * unzip opencv_contrib.zip
-* cd ~/opencv-3.0.0/
+* cd opencv-3.0.0/
 * mkdir build
 * cd build
 * cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON -D OPENCV_EXTRA_MODULES_PATH=~/Downloads/opencv_contrib-3.0.0/modules -D BUILD_EXAMPLES=ON -D BUILD_PYTHON_SUPPORT=ON -D BUILD_NEW_PYTHON_SUPPORT=ON -D PYTHON_INCLUDE_DIR=/usr/include/python2.7 -D PYTHON_LIBRARY=/usr/lib/arm-linux-gnueabihf/libpython2.7.so -Wno-dev ..
