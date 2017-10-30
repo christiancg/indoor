@@ -39,12 +39,7 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 * cd ~/opencv-3.0.0/
 * mkdir build
 * cd build
-* cmake -D CMAKE_BUILD_TYPE=RELEASE \
-        -D CMAKE_INSTALL_PREFIX=/usr/local \
-	-D INSTALL_C_EXAMPLES=ON \
-	-D INSTALL_PYTHON_EXAMPLES=ON \
-	-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.0.0/modules \
-	-D BUILD_EXAMPLES=ON ..
+* cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX=/usr/local -D INSTALL_C_EXAMPLES=ON -D INSTALL_PYTHON_EXAMPLES=ON -D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib-3.0.0/modules -D BUILD_EXAMPLES=ON -Wno-dev ..
 * make -j4
 * sudo make install
 * sudo ldconfig
@@ -53,15 +48,5 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 * wget https://bootstrap.pypa.io/get-pip.py
 * sudo python get-pip.py
 
-## Instalar y configurarar virtualenv
-* sudo pip install virtualenv virtualenvwrapper
-* sudo rm -rf ~/.cache/pip
-* export WORKON_HOME=$HOME/.virtualenvs
-* source /usr/local/bin/virtualenvwrapper.sh
-* source ~/.profile
-* mkvirtualenv cv
-
-## Linkeo de virtualenv a OpenCV
+## Chequear que sea hayan instalado las librerias de OpenCV
 * ls -l /usr/local/lib/python2.7/site-packages/ | grep cv2
-* cd ~/.virtualenvs/cv/lib/python2.7/site-packages/
-* ln -s /usr/local/lib/python2.7/site-packages/cv2.so cv2.so
