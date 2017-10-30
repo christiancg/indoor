@@ -21,7 +21,7 @@ class Camara(object):
 			self.CAMARA.read()
 			
 	def obtenerImagen(self):
-		#self,setupCamara()
+		self.setupCamara()
 		retval, im = self.CAMARA.read()
 		imtoreturn = None
 		if retval:
