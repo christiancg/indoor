@@ -21,12 +21,14 @@ class Camara(object):
 			self.CAMARA.read()
 			
 	def obtenerImagen(self):
-		self.setupCamara()
-		retval, im = self.CAMARA.read()
-		imtoreturn = None
-		if retval:
-			imtoreturn = base64.b64encode(cv2.imencode('.jpg',im)[1].tostring())
+		if self.CAMARA.isOpened():
+			self.setupCamara()
+			retval, im = self.CAMARA.read()
+			imtoreturn = None
+			if retval:
+				imtoreturn = base64.b64encode(cv2.imencode('.jpg',im)[1].tostring())
+			else:
+				imtoreturn = 'Error al capturar imagen'
+			return retval, imtoreturn
 		else:
-			imtoreturn = 'Error al capturar imagen'
-		return retval, imtoreturn
-	
+			return False, 'La camara no esta disponible'
