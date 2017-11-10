@@ -215,12 +215,56 @@ def addProgramacion():
 				if horario2 > horario1:
 					nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
 				else:
-					return 'el horario2 debe ser mayor a horario1'
+					return responder(json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' }),400)
 			else:
 				nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 		else:
 			nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 		modelos.db.session.add(nuevaProg)
+		modelos.db.session.commit()
+		return responder(json.dumps({'resultado': 'ok' }),200)
+	except Exception,ex:
+		print traceback.format_exc()
+		return responder(ex,500)
+		
+@app.route('/editarProgramacion', methods=['PUT'])
+def editarProgramacion():
+	try:
+		data = request.data
+		dataDict = json.loads(data)
+		prog = modelos.Programacion.query.filter(modelos.Programacion.id==dataDict['id']).first()
+		if prog is None:
+			return responder(json.dumps({'resultado': 'No se encontro la programacion a editar'}),400)
+		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc==dataDict['configgpio']).first()
+		if config is None:
+			return responder(json.dumps({'resultado': 'No se encontro la configgpio deseada para editar'}),400)
+		desc = dataDict['desc']
+		prender = dataDict['prender']
+		strhorario1 = dataDict['horario1']
+		horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
+		if 'horario2' in dataDict:
+			strhorario2 = dataDict['horario2']
+			if strhorario2:
+				horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
+				if horario2 > horario1:
+					prog.configgpio = config
+					prog.desc = desc
+					prog.prender = prender
+					prog.horario1 = horario1
+					prog.horario2 = horario2
+				else:
+					return responder(json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' }),400)
+			else:
+					prog.configgpio = config
+					prog.desc = desc
+					prog.prender = prender
+					prog.horario1 = horario1
+		else:
+			prog.configgpio = config
+			prog.desc = desc
+			prog.prender = prender
+			prog.horario1 = horario1
+		modelos.db.session.merge(prog)
 		modelos.db.session.commit()
 		return responder(json.dumps({'resultado': 'ok' }),200)
 	except Exception,ex:
