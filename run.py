@@ -313,7 +313,7 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 def obtenerImagenIndoor():
 	try:
 		result = {}
-		with Camara(-1,30) as cam:
+		with Camara(30) as cam:
 			tomo, imagen = cam.obtenerImagen()
 			result['status'] = tomo
 			if tomo:

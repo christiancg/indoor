@@ -5,9 +5,12 @@ class Camara(object):
 	FRAMES_CALIBRACION = 0
 	CAMARA = None
 	
-	def __init__(self, puerto, framescalibracion):
+	def __init__(self, framescalibracion):
 		self.FRAMES_CALIBRACION = framescalibracion
-		self.CAMARA = cv2.VideoCapture(puerto)
+		self.CAMARA = cv2.VideoCapture(0)
+		if not self.CAMARA.isOpened():
+			self.CAMARA.release()
+			self.CAMARA = cv2.VideoCapture(-1)
 	
 	def __enter__(self):
 		return self
@@ -23,7 +26,7 @@ class Camara(object):
 	def obtenerImagen(self):
 		if self.CAMARA.isOpened():
 			self.setupCamara()
-			retval, im = self.CAMARA.read()
+			retval, im = self.CAMARA.read()	
 			imtoreturn = None
 			if retval:
 				imtoreturn = base64.b64encode(cv2.imencode('.jpg',im)[1].tostring())
