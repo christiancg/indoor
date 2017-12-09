@@ -270,11 +270,31 @@ def editarProgramacion():
 	except Exception,ex:
 		print traceback.format_exc()
 		return responder(ex,500)
+		
+@app.route('/cambiarEstadoProgramacion/<id>/<estado>', methods=['PUT'])
+def cambiarEstadoProgramacion(id, estado):
+	try:
+		try:
+			estado = util.strtobool(estado)
+		except Exception, exp:
+			print 'error en parametro estado'
+			return responder(json.dumps({'resultado': 'El parametro estado debe ser true o false'}),400) 
+		prog = modelos.Programacion.query.filter(modelos.Programacion.id==id).first()
+		if prog is None:
+			return responder(json.dumps({'resultado': 'No se encontro la programacion a cambiar estado'}),400)
+		print 'estado en booleano: ' + str(estado)
+		prog.habilitado = estado
+		modelos.db.session.merge(prog)
+		modelos.db.session.commit()
+		return responder(json.dumps({'resultado': 'estado de programacion cambiado' }),200)
+	except Exception,ex:
+		print traceback.format_exc()
+		return responder(ex,500)
 
 @app.route('/obtenerProgramaciones')
 def obtenerProgramaciones():
 	try:
-		lprog = modelos.Programacion.query.filter(modelos.Programacion.habilitado==True).all()
+		lprog = modelos.Programacion.query.all()
 		return devolverJson(lprog,200)
 	except Exception,ex:
 		print traceback.format_exc()
