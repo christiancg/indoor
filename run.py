@@ -22,6 +22,8 @@ from camara import Camara
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
+import servidorcolas
+
 #def jsonify(*args,**kwargs):
 #	return app.response_class(json.dumps(dict(*args,**kwargs),cls=CustomJSONEncoder),mimetype='application/json')
 
@@ -104,6 +106,11 @@ with app.app_context():
 	try:
 		threadcorredor = CorredorTareas(app,modelos.db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
 		threadcorredor.start()
+	except Exception, ex:
+		print traceback.format_exc()
+	try:
+		cola = servidorcolas.ServidorCola('alfrescas.cipres.io')
+		cola.start()
 	except Exception, ex:
 		print traceback.format_exc()
 
