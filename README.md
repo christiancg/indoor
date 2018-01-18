@@ -8,6 +8,10 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 * sudo rpi-update
 * sudo reboot now
 
+## Librerias para la app del indoor
+* sudo pip install flask_sqlalchemy
+* sudo pip install pika
+
 ## Herramientas de buildeo
 * sudo apt-get install build-essential git cmake pkg-config
 
