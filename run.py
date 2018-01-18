@@ -19,6 +19,8 @@ from corredortareas import CorredorTareas
 
 from camara import Camara
 
+from authenticationdecorator import requires_auth
+
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
@@ -115,6 +117,7 @@ with app.app_context():
 		print traceback.format_exc()
 
 @app.route('/test')
+@requires_auth
 def test():
     return responder("todo ok!",200)
     

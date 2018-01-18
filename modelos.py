@@ -67,4 +67,14 @@ class Programacion(db.Model):
 	def __repr__(self):
 		return '<Programacion %r>' % self.id
 		
+class Usuario(db.Model):
+	__tablename__ = 'usuarios'
+	nombre = db.Column(db.String(50), primary_key=True)
+	password = db.Column(db.String(100))
+	def __init__(self,nombre,password):
+		self.nombre = nombre
+		self.password = password
+	def __repr__(self):
+		return '<Usuario %r>' % self.nombre
+		
 

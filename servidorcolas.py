@@ -18,12 +18,12 @@ class ServidorCola(threading.Thread):
 		elif n == 1:
 			return 1
 		else:
-			return fib(n-1) + fib(n-2)
+			return self.fib(n-1) + self.fib(n-2)
 
 	def on_request(self, ch, method, props, body):
 		n = int(body)
 		print(" [.] fib(%s)" % n)
-		response = fib(n)
+		response = self.fib(n)
 		ch.basic_publish(exchange='',
 						 routing_key=props.reply_to,
 						 properties=pika.BasicProperties(correlation_id = props.correlation_id),
