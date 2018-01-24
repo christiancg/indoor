@@ -12,18 +12,19 @@ class ServidorCola(threading.Thread):
 		self.channel = self.connection.channel()
 		self.channel.queue_declare(queue='rpc_queue')
 
-	def fib(self,n):
-		if n == 0:
-			return 0
-		elif n == 1:
-			return 1
-		else:
-			return self.fib(n-1) + self.fib(n-2)
+	#def fib(self,n):
+		#if n == 0:
+			#return 0
+		#elif n == 1:
+			#return 1
+		#else:
+			#return self.fib(n-1) + self.fib(n-2)
+	def processMessage(self, message):
+		print(str(message))
+		return True
 
 	def on_request(self, ch, method, props, body):
-		n = int(body)
-		print(" [.] fib(%s)" % n)
-		response = self.fib(n)
+		response = self.processMessage(body)
 		ch.basic_publish(exchange='',
 						 routing_key=props.reply_to,
 						 properties=pika.BasicProperties(correlation_id = props.correlation_id),
