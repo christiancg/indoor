@@ -11,6 +11,7 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 ## Librerias para la app del indoor
 * sudo pip install flask_sqlalchemy
 * sudo pip install pika
+* sudo pip install jsonpickle
 
 ## Herramientas de buildeo
 * sudo apt-get install build-essential git cmake pkg-config
