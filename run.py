@@ -26,9 +26,6 @@ encoder = CustomJSONEncoder()
 
 import servidorcolas
 
-#def jsonify(*args,**kwargs):
-#	return app.response_class(json.dumps(dict(*args,**kwargs),cls=CustomJSONEncoder),mimetype='application/json')
-
 def responder(obj,status):
 	return Response(response=obj,status=status,mimetype='application/json') 
 	
@@ -122,6 +119,7 @@ def test():
     return responder("todo ok!",200)
     
 @app.route('/obtenerConfiguraciones')
+@requires_auth
 def getConfig():
 	try:
 		lconfig = modelos.ConfigGpio.query.all()
@@ -131,6 +129,7 @@ def getConfig():
 		return responder(ex,500)
 		
 @app.route('/luz/<prender>')
+@requires_auth
 def luz(prender):
 	try:
 		bprender = util.strtobool(prender)
@@ -149,6 +148,7 @@ def luz(prender):
 		return responder(ex,500)
 		
 @app.route('/regarSegundos/<segs>')
+@requires_auth
 def regarSegundos(segs):
 	try:
 		desc = 'regado ' + segs + ' segundos'
@@ -161,6 +161,7 @@ def regarSegundos(segs):
 		return responder(ex,500)
 		
 @app.route('/humedadYTemperatura')
+@requires_auth
 def humedadYTemperatura():
 	try:
 		temp, hum = gpiohumytemp.medir()
@@ -174,6 +175,7 @@ def humedadYTemperatura():
 		return responder(ex,500)
 		
 @app.route('/fanIntra/<prender>')
+@requires_auth
 def fanIntra(prender):
 	try:
 		bprender = util.strtobool(prender)
@@ -192,6 +194,7 @@ def fanIntra(prender):
 		return responder(ex,500)
 		
 @app.route('/fanExtra/<prender>')
+@requires_auth
 def fanExtra(prender):
 	try:
 		bprender = util.strtobool(prender)
@@ -210,6 +213,7 @@ def fanExtra(prender):
 		return responder(ex,500)
 
 @app.route('/agregarProgramacion', methods=['POST'])
+@requires_auth
 def addProgramacion():
 	try:
 		data = request.data
@@ -241,6 +245,7 @@ def addProgramacion():
 		return responder(ex,500)
 		
 @app.route('/editarProgramacion', methods=['PUT'])
+@requires_auth
 def editarProgramacion():
 	try:
 		data = request.data
@@ -285,6 +290,7 @@ def editarProgramacion():
 		return responder(ex,500)
 		
 @app.route('/cambiarEstadoProgramacion/<id>/<estado>', methods=['PUT'])
+@requires_auth
 def cambiarEstadoProgramacion(id, estado):
 	try:
 		try:
@@ -305,6 +311,7 @@ def cambiarEstadoProgramacion(id, estado):
 		return responder(ex,500)
 
 @app.route('/obtenerProgramaciones')
+@requires_auth
 def obtenerProgramaciones():
 	try:
 		lprog = modelos.Programacion.query.all()
@@ -315,6 +322,7 @@ def obtenerProgramaciones():
 		
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>')
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>/<tipoEvento>')
+@requires_auth
 def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 	try:
 		inicio = None
@@ -343,6 +351,7 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 		return responder(ex,500)
 		
 @app.route('/obtenerImagenIndoor')
+@requires_auth
 def obtenerImagenIndoor():
 	try:
 		result = {}
