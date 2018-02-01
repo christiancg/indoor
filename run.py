@@ -9,17 +9,21 @@ import distutils
 from distutils import util
 import os
 
+from logger import Logger
+log = Logger(__name__)
+log.info('app iniciando') 
+
 file_path = os.path.abspath(os.getcwd())+"/db/indoor.db"
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path
 
+log.info('La base de datos esta en: ' + app.config['SQLALCHEMY_DATABASE_URI'])
+
 import modelos
 from corredortareas import CorredorTareas
 
 from camara import Camara
-
-from authenticationdecorator import requires_auth
 
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
@@ -42,6 +46,7 @@ def saveConfigToDb(id,desc):
 		modelos.db.session.add(toadd)
 		modelos.db.session.commit()
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		
 def saveEventToDb(desc,configgpio):
@@ -50,6 +55,7 @@ def saveEventToDb(desc,configgpio):
 		modelos.db.session.add(toadd)
 		modelos.db.session.commit()
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 
 gpioluz = None
@@ -100,18 +106,23 @@ with app.app_context():
 			saveConfigToDb(18,'fanextra')
 			gpiofanextra = gpiotasks.GpioFanExtra(27)
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 	#lueg configuracion del corredor de tareas
 	try:
 		threadcorredor = CorredorTareas(app,modelos.db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
 		threadcorredor.start()
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 	try:
 		cola = servidorcolas.ServidorCola('alfrescas.cipres.io')
 		cola.start()
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
+		
+from authenticationdecorator import requires_auth
 
 @app.route('/test')
 @requires_auth
@@ -125,6 +136,7 @@ def getConfig():
 		lconfig = modelos.ConfigGpio.query.all()
 		return devolverJson(lconfig,200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -144,6 +156,7 @@ def luz(prender):
 		saveEventToDb(status, config)
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -157,6 +170,7 @@ def regarSegundos(segs):
 		gpiobomba.regarSegundos(segs)
 		return responder(json.dumps({'resultado' : desc}),200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -171,6 +185,7 @@ def humedadYTemperatura():
 		saveEventToDb(strresponse, config)
 		return responder(json.dumps(devolver),200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -190,6 +205,7 @@ def fanIntra(prender):
 		saveEventToDb(status, config)
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -209,6 +225,7 @@ def fanExtra(prender):
 		saveEventToDb(status, config)
 		return responder(json.dumps({'resultado' : status}),200)
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 
@@ -241,6 +258,7 @@ def addProgramacion():
 		modelos.db.session.commit()
 		return responder(json.dumps({'resultado': 'ok' }),200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -286,6 +304,7 @@ def editarProgramacion():
 		modelos.db.session.commit()
 		return responder(json.dumps({'resultado': 'ok' }),200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -296,17 +315,18 @@ def cambiarEstadoProgramacion(id, estado):
 		try:
 			estado = util.strtobool(estado)
 		except Exception, exp:
+			log.exception(exp)
 			print 'error en parametro estado'
 			return responder(json.dumps({'resultado': 'El parametro estado debe ser true o false'}),400) 
 		prog = modelos.Programacion.query.filter(modelos.Programacion.id==id).first()
 		if prog is None:
 			return responder(json.dumps({'resultado': 'No se encontro la programacion a cambiar estado'}),400)
-		print 'estado en booleano: ' + str(estado)
 		prog.habilitado = estado
 		modelos.db.session.merge(prog)
 		modelos.db.session.commit()
 		return responder(json.dumps({'resultado': 'estado de programacion cambiado' }),200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 
@@ -317,6 +337,7 @@ def obtenerProgramaciones():
 		lprog = modelos.Programacion.query.all()
 		return devolverJson(lprog,200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -330,7 +351,8 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 		try:
 			inicio = datetime.datetime.strptime(fechaInicio, '%d-%m-%YT%H:%M:%S') 
 			fin = datetime.datetime.strptime(fechaFin, '%d-%m-%YT%H:%M:%S')
-		except Exception:
+		except Exception, exp:
+			log.exception(exp)
 			print traceback.format_exc()
 			error = { 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' }
 			return make_response(jsonify(error),400)
@@ -347,6 +369,7 @@ def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
 		else:
 			return devolverJson(leventos,200)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		
@@ -368,6 +391,7 @@ def obtenerImagenIndoor():
 		else:
 			return responder(json.dumps(result),500)
 	except Exception,ex:
+		log.exception(ex)
 		print traceback.format_exc()
 		return responder(ex,500)
 		

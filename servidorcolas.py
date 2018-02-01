@@ -2,6 +2,8 @@ import pika
 import threading
 import traceback
 import jsonpickle
+from logger import Logger
+log = Logger(__name__)
 
 class ServidorCola(threading.Thread):
 	connection = None
@@ -19,6 +21,7 @@ class ServidorCola(threading.Thread):
 		try:
 			return jsonpickle.encode(Respuesta(200, True, "Test OK", {}))
 		except Exception, ex:
+			log.exception(ex)
 			return jsonpickle.encode(Respuesta(500, False, "Error generalizado", ex))
 			print traceback.format_exc()
 
@@ -32,12 +35,14 @@ class ServidorCola(threading.Thread):
 							body=str(response))
 			ch.basic_ack(delivery_tag = method.delivery_tag)
 		except Exception, ex:
+			log.exception(ex)
 			print traceback.format_exc()
 
 	def run(self):
 		self.channel.basic_qos(prefetch_count=1)
 		self.channel.basic_consume(self.on_request, queue='rpc_queue')
 		print(" [x] Awaiting RPC requests")
+		log.info(" [x] Awaiting RPC requests")
 		self.channel.start_consuming()
 		
 class Respuesta(object):

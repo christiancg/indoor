@@ -3,6 +3,7 @@ import threading
 import time
 import traceback
 import datetime
+from logger import Logger
 
 class CorredorTareas(threading.Thread):
 	app = None
@@ -13,6 +14,7 @@ class CorredorTareas(threading.Thread):
 	gpiohumytemp = None
 	gpiofanintra = None
 	gpiofanextra = None
+	log = None
 	def __init__(self,app,db,segspolling,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra):
 		threading.Thread.__init__(self)
 		self.app = app
@@ -23,6 +25,7 @@ class CorredorTareas(threading.Thread):
 		self.gpiohumytemp = gpiohumytemp
 		self.gpiofanintra = gpiofanintra
 		self.gpiofanextra = gpiofanextra
+		self.log = Logger(__name__)
 	def run(self):
 		with self.app.app_context():
 			while True:
@@ -57,6 +60,7 @@ class CorredorTareas(threading.Thread):
 								self.gpiofanextra.apagarFanExtra()
 						self.saveEventToDb(prog)
 				except Exception,ex:
+					self.log.exception(ex)
 					print traceback.format_exc()
 		
 	def saveEventToDb(self,prog):
@@ -66,4 +70,5 @@ class CorredorTareas(threading.Thread):
 			self.db.session.add(toadd)
 			self.db.session.commit()
 		except Exception, ex:
+			self.log.exception(ex)
 			print traceback.format_exc()

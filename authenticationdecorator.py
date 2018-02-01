@@ -1,22 +1,24 @@
 from functools import wraps
 from flask import request, Response
-import modelos
+from modelos import Usuario
 
+from logger import Logger
+log = Logger(__name__)
 
 def check_auth(username, password):
     """This function is called to check if a username /
     password combination is valid.
     """
     try:
-		usr = modelos.Usuario.query.filter(modelos.Usuario.nombre == username).first()
+		usr = Usuario.query.filter(Usuario.nombre == username).first()
 		if usr is None:
 			return False
 		elif usr.password != password:
 			return False
 		else:
 			return True
-    except Exception:
-		print traceback.format_exc()
+    except Exception, ex:
+		log.exception(ex)
 		return False
 
 def authenticate():

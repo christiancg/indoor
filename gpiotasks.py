@@ -3,6 +3,8 @@ import time
 import pigpio
 import DHT22
 import modelos
+from logger import Logger
+log = Logger(__name__)
 
 def updateGpioStatus(status,configgpio_id):
 	try:
@@ -10,6 +12,7 @@ def updateGpioStatus(status,configgpio_id):
 		toupdate.estado = status
 		modelos.db.session.commit()
 	except Exception, ex:
+		log.exception(ex)
 		print traceback.format_exc()
 
 class GpioLuz:
