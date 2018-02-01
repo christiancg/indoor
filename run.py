@@ -30,6 +30,8 @@ encoder = CustomJSONEncoder()
 
 import servidorcolas
 
+from authenticationdecorator import requires_auth
+
 def responder(obj,status):
 	return Response(response=obj,status=status,mimetype='application/json') 
 	
@@ -122,7 +124,8 @@ with app.app_context():
 		log.exception(ex)
 		print traceback.format_exc()
 		
-from authenticationdecorator import requires_auth
+from endpoints import Endpoints
+ep = Endpoints(gpioluz, gpiobomba, gpiohumytemp, gpiofanintra, gpiofanextra)
 
 @app.route('/test')
 @requires_auth
@@ -143,22 +146,27 @@ def getConfig():
 @app.route('/luz/<prender>')
 @requires_auth
 def luz(prender):
-	try:
-		bprender = util.strtobool(prender)
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		status = ''
-		if bprender:
-			status = 'luz prendida'
-			gpioluz.prenderLuz()
-		else:
-			status = 'luz apagada'
-			gpioluz.apagarLuz()
-		saveEventToDb(status, config)
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception, ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.luz(prender)
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
+	#~ try:
+		#~ bprender = util.strtobool(prender)
+		#~ config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
+		#~ status = ''
+		#~ if bprender:
+			#~ status = 'luz prendida'
+			#~ gpioluz.prenderLuz()
+		#~ else:
+			#~ status = 'luz apagada'
+			#~ gpioluz.apagarLuz()
+		#~ saveEventToDb(status, config)
+		#~ return responder(json.dumps({'resultado' : status}),200)
+	#~ except Exception, ex:
+		#~ log.exception(ex)
+		#~ print traceback.format_exc()
+		#~ return responder(ex,500)
 		
 @app.route('/regarSegundos/<segs>')
 @requires_auth
