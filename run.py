@@ -135,13 +135,11 @@ def test():
 @app.route('/obtenerConfiguraciones')
 @requires_auth
 def getConfig():
-	try:
-		lconfig = modelos.ConfigGpio.query.all()
-		return devolverJson(lconfig,200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.getConfig()
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
 		
 @app.route('/luz/<prender>')
 @requires_auth
@@ -151,124 +149,53 @@ def luz(prender):
 		return devolverJson(msg,code)
 	else:
 		return responder(msg,code)
-	#~ try:
-		#~ bprender = util.strtobool(prender)
-		#~ config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-		#~ status = ''
-		#~ if bprender:
-			#~ status = 'luz prendida'
-			#~ gpioluz.prenderLuz()
-		#~ else:
-			#~ status = 'luz apagada'
-			#~ gpioluz.apagarLuz()
-		#~ saveEventToDb(status, config)
-		#~ return responder(json.dumps({'resultado' : status}),200)
-	#~ except Exception, ex:
-		#~ log.exception(ex)
-		#~ print traceback.format_exc()
-		#~ return responder(ex,500)
-		
-@app.route('/regarSegundos/<segs>')
-@requires_auth
-def regarSegundos(segs):
-	try:
-		desc = 'regado ' + segs + ' segundos'
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='bomba').first()
-		saveEventToDb(desc, config)
-		gpiobomba.regarSegundos(segs)
-		return responder(json.dumps({'resultado' : desc}),200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
-		
-@app.route('/humedadYTemperatura')
-@requires_auth
-def humedadYTemperatura():
-	try:
-		temp, hum = gpiohumytemp.medir()
-		devolver = { 'humedad' : hum , 'temperatura' : temp }
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
-		strresponse = str(devolver)
-		saveEventToDb(strresponse, config)
-		return responder(json.dumps(devolver),200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
-		
+
 @app.route('/fanIntra/<prender>')
 @requires_auth
 def fanIntra(prender):
-	try:
-		bprender = util.strtobool(prender)
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
-		status = ''
-		if bprender:
-			status = 'Fan intracion prendido'
-			gpiofanintra.prenderFanIntra()
-		else:
-			status = 'Fan intracion apagado'
-			gpiofanintra.apagarFanIntra()		
-		saveEventToDb(status, config)
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception, ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.fanIntra(prender)
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
 		
 @app.route('/fanExtra/<prender>')
 @requires_auth
 def fanExtra(prender):
-	try:
-		bprender = util.strtobool(prender)
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
-		status = ''
-		if bprender:
-			status = 'Fan extraccion prendido'
-			gpiofanextra.prenderFanExtra()
-		else:
-			status = 'Fan extraccion apagado'
-			gpiofanextra.apagarFanExtra()	
-		saveEventToDb(status, config)
-		return responder(json.dumps({'resultado' : status}),200)
-	except Exception, ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.fanExtra(prender)
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
+		
+@app.route('/regarSegundos/<segs>')
+@requires_auth
+def regarSegundos(segs):
+	dj, msg, code = ep.regarSegundos(segs)
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
+		
+@app.route('/humedadYTemperatura')
+@requires_auth
+def humedadYTemperatura():
+	dj, msg, code = ep.humedadYTemperatura()
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
 
 @app.route('/agregarProgramacion', methods=['POST'])
 @requires_auth
 def addProgramacion():
-	try:
-		data = request.data
-		dataDict = json.loads(data)
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc==dataDict['configgpio']).first()
-		if config is None:
-			return responder(json.dumps({'resultado': 'No se encontro la tarea a programar'}),400)
-		desc = dataDict['desc']
-		prender = dataDict['prender']
-		strhorario1 = dataDict['horario1']
-		horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
-		if 'horario2' in dataDict:
-			strhorario2 = dataDict['horario2']
-			if strhorario2:
-				horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
-				if horario2 > horario1:
-					nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
-				else:
-					return responder(json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' }),400)
-			else:
-				nuevaProg = modelos.Programacion(desc,config,prender,horario1)
-		else:
-			nuevaProg = modelos.Programacion(desc,config,prender,horario1)
-		modelos.db.session.add(nuevaProg)
-		modelos.db.session.commit()
-		return responder(json.dumps({'resultado': 'ok' }),200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	data = request.data
+	dataDict = json.loads(data)
+	dj, msg, code = ep.addProgramacion(dataDict)
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
 		
 @app.route('/editarProgramacion', methods=['PUT'])
 @requires_auth
