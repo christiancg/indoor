@@ -2,6 +2,7 @@ import traceback
 import datetime
 import json
 from distutils import util
+from camara import Camara
 
 import modelos
 from logger import Logger
@@ -135,7 +136,6 @@ class Endpoints(object):
 			if config is None:
 				msg = json.dumps({'resultado': 'No se encontro la tarea a programar'})
 				return False, msg, 400
-				#~ return responder(json.dumps({'resultado': 'No se encontro la tarea a programar'}),400)
 			desc = dataDict['desc']
 			prender = dataDict['prender']
 			strhorario1 = dataDict['horario1']
@@ -149,7 +149,6 @@ class Endpoints(object):
 					else:
 						msg = json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' })
 						return False, msg, 400
-						#~ return responder(json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' }),400)
 				else:
 					nuevaProg = modelos.Programacion(desc,config,prender,horario1)
 			else:
@@ -158,9 +157,135 @@ class Endpoints(object):
 			modelos.db.session.commit()
 			msg = json.dumps({'resultado': 'ok' })
 			return False, msg , 200
-			#~ return responder(json.dumps({'resultado': 'ok' }),200)
 		except Exception,ex:
 			log.exception(ex)
 			print traceback.format_exc()
 			return False, ex, 500
-			#~ return responder(ex,500)
+	
+	def editarProgramacion(self, dataDict):		
+		try:
+			prog = modelos.Programacion.query.filter(modelos.Programacion.id==dataDict['id']).first()
+			if prog is None:
+				msg = json.dumps({'resultado': 'No se encontro la programacion a editar'})
+				return False, msg, 400
+			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc==dataDict['configgpio']).first()
+			if config is None:
+				msg = json.dumps({'resultado': 'No se encontro la configgpio deseada para editar'})
+				return False, msg, 400
+			desc = dataDict['desc']
+			prender = dataDict['prender']
+			strhorario1 = dataDict['horario1']
+			horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
+			if 'horario2' in dataDict:
+				strhorario2 = dataDict['horario2']
+				if strhorario2:
+					horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
+					if horario2 > horario1:
+						prog.configgpio = config
+						prog.desc = desc
+						prog.prender = prender
+						prog.horario1 = horario1
+						prog.horario2 = horario2
+					else:
+						msg = json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' })
+						return False, msg, 400
+				else:
+						prog.configgpio = config
+						prog.desc = desc
+						prog.prender = prender
+						prog.horario1 = horario1
+			else:
+				prog.configgpio = config
+				prog.desc = desc
+				prog.prender = prender
+				prog.horario1 = horario1
+			modelos.db.session.merge(prog)
+			modelos.db.session.commit()
+			msg = json.dumps({'resultado': 'ok' })
+			return False, msg, 200
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500
+			
+	def cambiarEstadoProgramacion(self, id, estado):
+		try:
+			try:
+				estado = util.strtobool(estado)
+			except Exception, exp:
+				log.exception(exp)
+				msg = json.dumps({'resultado': 'El parametro estado debe ser true o false'})
+				return False, msg, 400
+			prog = modelos.Programacion.query.filter(modelos.Programacion.id==id).first()
+			if prog is None:
+				msg = json.dumps({'resultado': 'No se encontro la programacion a cambiar estado'})
+				return False, msg, 400
+			prog.habilitado = estado
+			modelos.db.session.merge(prog)
+			modelos.db.session.commit()
+			msg = json.dumps({'resultado': 'estado de programacion cambiado' })
+			return False, msg, 200
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500
+
+	def obtenerProgramaciones(self):
+		try:
+			lprog = modelos.Programacion.query.all()
+			return True, lprog, 200
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500
+				
+	def obtenerEventosPorFecha(self, fechaInicio,fechaFin,tipoEvento=''):
+		try:
+			inicio = None
+			fin = None
+			try:
+				inicio = datetime.datetime.strptime(fechaInicio, '%d-%m-%YT%H:%M:%S') 
+				fin = datetime.datetime.strptime(fechaFin, '%d-%m-%YT%H:%M:%S')
+			except Exception, exp:
+				log.exception(exp)
+				print traceback.format_exc()
+				error = json.dumps({ 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' })
+				return False, error, 400
+			if inicio > fin:
+				error = json.dumps({ 'error' : 'La fecha de inicio no puede ser inferior a la fecha de fin' })
+				return False, error, 400
+			leventos = None
+			if tipoEvento == '':
+				leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).all()
+			else:
+				leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
+			if leventos is None:
+				msg = json.dumps([])
+				return False, msg, 200
+			else:
+				return True, leventos, 200
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500
+			
+	def obtenerImagenIndoor(self):
+		try:
+			result = {}
+			with Camara(30) as cam:
+				tomo, imagen = cam.obtenerImagen()
+				result['status'] = tomo
+				if tomo:
+					date = str(datetime.datetime.now())
+					result = { 'status':tomo, 'b64image': imagen, 'date': date }
+				else:
+					result = { 'status':tomo, 'msg': imagen }
+			msg = json.dumps(result)
+			if result['status']:
+				return False, msg, 200
+			else:
+				return False, msg, 500
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500

@@ -23,8 +23,6 @@ log.info('La base de datos esta en: ' + app.config['SQLALCHEMY_DATABASE_URI'])
 import modelos
 from corredortareas import CorredorTareas
 
-from camara import Camara
-
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
@@ -127,6 +125,12 @@ with app.app_context():
 from endpoints import Endpoints
 ep = Endpoints(gpioluz, gpiobomba, gpiohumytemp, gpiofanintra, gpiofanextra)
 
+def finalizarRespuesta(dj, msg, code):
+	if dj:
+		return devolverJson(msg,code)
+	else:
+		return responder(msg,code)
+
 @app.route('/test')
 @requires_auth
 def test():
@@ -136,55 +140,37 @@ def test():
 @requires_auth
 def getConfig():
 	dj, msg, code = ep.getConfig()
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/luz/<prender>')
 @requires_auth
 def luz(prender):
 	dj, msg, code = ep.luz(prender)
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 
 @app.route('/fanIntra/<prender>')
 @requires_auth
 def fanIntra(prender):
 	dj, msg, code = ep.fanIntra(prender)
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/fanExtra/<prender>')
 @requires_auth
 def fanExtra(prender):
 	dj, msg, code = ep.fanExtra(prender)
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
-		
+	return finalizarRespuesta(dj, msg, code)
+			
 @app.route('/regarSegundos/<segs>')
 @requires_auth
 def regarSegundos(segs):
 	dj, msg, code = ep.regarSegundos(segs)
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/humedadYTemperatura')
 @requires_auth
 def humedadYTemperatura():
 	dj, msg, code = ep.humedadYTemperatura()
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 
 @app.route('/agregarProgramacion', methods=['POST'])
 @requires_auth
@@ -192,143 +178,40 @@ def addProgramacion():
 	data = request.data
 	dataDict = json.loads(data)
 	dj, msg, code = ep.addProgramacion(dataDict)
-	if dj:
-		return devolverJson(msg,code)
-	else:
-		return responder(msg,code)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/editarProgramacion', methods=['PUT'])
 @requires_auth
 def editarProgramacion():
-	try:
-		data = request.data
-		dataDict = json.loads(data)
-		prog = modelos.Programacion.query.filter(modelos.Programacion.id==dataDict['id']).first()
-		if prog is None:
-			return responder(json.dumps({'resultado': 'No se encontro la programacion a editar'}),400)
-		config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc==dataDict['configgpio']).first()
-		if config is None:
-			return responder(json.dumps({'resultado': 'No se encontro la configgpio deseada para editar'}),400)
-		desc = dataDict['desc']
-		prender = dataDict['prender']
-		strhorario1 = dataDict['horario1']
-		horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
-		if 'horario2' in dataDict:
-			strhorario2 = dataDict['horario2']
-			if strhorario2:
-				horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
-				if horario2 > horario1:
-					prog.configgpio = config
-					prog.desc = desc
-					prog.prender = prender
-					prog.horario1 = horario1
-					prog.horario2 = horario2
-				else:
-					return responder(json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' }),400)
-			else:
-					prog.configgpio = config
-					prog.desc = desc
-					prog.prender = prender
-					prog.horario1 = horario1
-		else:
-			prog.configgpio = config
-			prog.desc = desc
-			prog.prender = prender
-			prog.horario1 = horario1
-		modelos.db.session.merge(prog)
-		modelos.db.session.commit()
-		return responder(json.dumps({'resultado': 'ok' }),200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	data = request.data
+	dataDict = json.loads(data)
+	dj, msg, code = ep.editarProgramacion(dataDict)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/cambiarEstadoProgramacion/<id>/<estado>', methods=['PUT'])
 @requires_auth
 def cambiarEstadoProgramacion(id, estado):
-	try:
-		try:
-			estado = util.strtobool(estado)
-		except Exception, exp:
-			log.exception(exp)
-			print 'error en parametro estado'
-			return responder(json.dumps({'resultado': 'El parametro estado debe ser true o false'}),400) 
-		prog = modelos.Programacion.query.filter(modelos.Programacion.id==id).first()
-		if prog is None:
-			return responder(json.dumps({'resultado': 'No se encontro la programacion a cambiar estado'}),400)
-		prog.habilitado = estado
-		modelos.db.session.merge(prog)
-		modelos.db.session.commit()
-		return responder(json.dumps({'resultado': 'estado de programacion cambiado' }),200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.cambiarEstadoProgramacion(id, estado)
+	return finalizarRespuesta(dj, msg, code)
 
 @app.route('/obtenerProgramaciones')
 @requires_auth
 def obtenerProgramaciones():
-	try:
-		lprog = modelos.Programacion.query.all()
-		return devolverJson(lprog,200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.obtenerProgramaciones()
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>')
 @app.route('/obtenerEventosPorFecha/<fechaInicio>/<fechaFin>/<tipoEvento>')
 @requires_auth
 def obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento=''):
-	try:
-		inicio = None
-		fin = None
-		try:
-			inicio = datetime.datetime.strptime(fechaInicio, '%d-%m-%YT%H:%M:%S') 
-			fin = datetime.datetime.strptime(fechaFin, '%d-%m-%YT%H:%M:%S')
-		except Exception, exp:
-			log.exception(exp)
-			print traceback.format_exc()
-			error = { 'error' : 'Tanto la fecha de inicio y la fecha de fin deben ser fechas con formato dd-MM-yyyyThh:mm:ss' }
-			return make_response(jsonify(error),400)
-		if inicio > fin:
-			error = { 'error' : 'La fecha de inicio no puede ser inferior a la fecha de fin' }
-			return make_response(jsonify(error),400)
-		leventos = None
-		if tipoEvento == '':
-			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).all()
-		else:
-			leventos = modelos.Evento.query.filter(modelos.Evento.fechayhora > inicio).filter(modelos.Evento.fechayhora < fin).join(modelos.Evento.configgpio).filter(modelos.ConfigGpio.desc == tipoEvento).all()
-		if leventos is None:
-			return make_response(jsonify([]),200)
-		else:
-			return devolverJson(leventos,200)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.obtenerEventosPorFecha(fechaInicio,fechaFin,tipoEvento)
+	return finalizarRespuesta(dj, msg, code)
 		
 @app.route('/obtenerImagenIndoor')
 @requires_auth
 def obtenerImagenIndoor():
-	try:
-		result = {}
-		with Camara(30) as cam:
-			tomo, imagen = cam.obtenerImagen()
-			result['status'] = tomo
-			if tomo:
-				date = str(datetime.datetime.now())
-				result = { 'status':tomo, 'b64image': imagen, 'date': date }
-			else:
-				result = { 'status':tomo, 'msg': imagen }
-		if result['status']:
-			return responder(json.dumps(result),200)
-		else:
-			return responder(json.dumps(result),500)
-	except Exception,ex:
-		log.exception(ex)
-		print traceback.format_exc()
-		return responder(ex,500)
+	dj, msg, code = ep.obtenerImagenIndoor()
+	return finalizarRespuesta(dj, msg, code)
 		
 if __name__ == '__main__':
 	app.run(host='0.0.0.0', port=9090)
