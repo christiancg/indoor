@@ -64,6 +64,9 @@ gpiohumytemp = None
 gpiofanintra = None
 gpiofanextra = None
 
+from endpoints import Endpoints
+ep = None
+
 with app.app_context():
 	modelos.db.init_app(app)
 	modelos.db.create_all()
@@ -108,6 +111,8 @@ with app.app_context():
 	except Exception, ex:
 		log.exception(ex)
 		print traceback.format_exc()
+	#creacion de objeto que contiene los endpoints
+	ep = Endpoints(gpioluz, gpiobomba, gpiohumytemp, gpiofanintra, gpiofanextra)
 	#lueg configuracion del corredor de tareas
 	try:
 		threadcorredor = CorredorTareas(app,modelos.db,10,gpioluz,gpiobomba,gpiohumytemp,gpiofanintra,gpiofanextra)
@@ -116,14 +121,11 @@ with app.app_context():
 		log.exception(ex)
 		print traceback.format_exc()
 	try:
-		cola = servidorcolas.ServidorCola('alfrescas.cipres.io')
+		cola = servidorcolas.ServidorCola('alfrescas.cipres.io', app, ep)
 		cola.start()
 	except Exception, ex:
 		log.exception(ex)
 		print traceback.format_exc()
-		
-from endpoints import Endpoints
-ep = Endpoints(gpioluz, gpiobomba, gpiohumytemp, gpiofanintra, gpiofanextra)
 
 def finalizarRespuesta(dj, msg, code):
 	if dj:

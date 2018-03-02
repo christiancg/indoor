@@ -23,10 +23,11 @@ def check_auth(username, password):
 
 def authenticate():
     """Sends a 401 response that enables basic auth"""
-    return Response(
+    return Response(response={ 'status':
     'Could not verify your access level for that URL.\n'
-    'You have to login with proper credentials', 401,
-    {'WWW-Authenticate': 'Basic realm="Login Required"'})
+    'You have to login with proper credentials'}, status=401,
+    headers={'WWW-Authenticate': 'Basic realm="Login Required"'}, 
+    mimetype='application/json')
 
 def requires_auth(f):
     @wraps(f)
