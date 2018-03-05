@@ -12,12 +12,14 @@ import json
 from CustomJSONEncoder import CustomJSONEncoder
 encoder = CustomJSONEncoder()
 
-def devolverJson(dj, msg, code):
+def makeResponse(dj, msg, code):
 	if msg is None:
 		return Respuesta(code, jsonify({}))
-	else:
+	elif dj:
 		devolver = json.dumps(encoder.default(msg))
 		return Respuesta(code, devolver)
+	else:
+		return Respuesta(code, json.loads(msg))
 
 class ServidorCola(threading.Thread):
 	connection = None
@@ -51,8 +53,11 @@ class ServidorCola(threading.Thread):
 	def _routeRequest(self, obj):
 		if obj['Endpoint'] == 'obtenerConfiguraciones':
 			dj, msg, code = self.endpoints.getConfig()
-			return devolverJson(dj, msg, code)
-		return jsonpickle.encode(Respuesta(200, {}))
+			return makeResponse(dj, msg, code)
+		if obj['Endpoint'] == 'obtenerImagen':
+			dj, msg, code = self.endpoints.obtenerImagenIndoor()
+			return makeResponse(dj, msg, code)
+		return Respuesta(404, { 'error': 'No se encontro el endpoint solicitado' })
 
 	def processMessage(self, message):
 		with self.app.app_context():
@@ -98,4 +103,5 @@ class Respuesta(object):
 			self.Success = True
 		else:
 			self.Success = False
-		self.Result = result
+		print str(result).encode("ascii")
+		self.Result = str(result).encode("ascii")
