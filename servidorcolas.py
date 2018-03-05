@@ -19,7 +19,7 @@ def makeResponse(dj, msg, code):
 		devolver = json.dumps(encoder.default(msg))
 		return Respuesta(code, devolver)
 	else:
-		return Respuesta(code, json.loads(msg))
+		return Respuesta(code, msg)
 
 class ServidorCola(threading.Thread):
 	connection = None
@@ -54,14 +54,57 @@ class ServidorCola(threading.Thread):
 		if obj['Endpoint'] == 'obtenerConfiguraciones':
 			dj, msg, code = self.endpoints.getConfig()
 			return makeResponse(dj, msg, code)
-		if obj['Endpoint'] == 'obtenerImagen':
+		elif obj['Endpoint'] == 'obtenerImagen':
 			dj, msg, code = self.endpoints.obtenerImagenIndoor()
 			return makeResponse(dj, msg, code)
+		elif obj['Endpoint'] == 'obtenerEventosPorFecha':
+			fechaInicio= obj['GetParameters'][0] 
+			fechaFin= obj['GetParameters'][1] 
+			try:
+				tipoEvento = obj['GetParameters'][2]
+			except IndexError:
+				tipoEvento = ''
+			dj, msg, code = self.endpoints.obtenerEventosPorFecha(fechaInicio, fechaFin, tipoEvento)
+			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'obtenerProgramaciones':
+			dj, msg, code = self.endpoints.obtenerProgramaciones()
+			return makeResponse(dj, msg, code)
+		elif obj['Endpoint'] == 'humedadYTemperatura':
+			dj, msg, code = self.endpoints.humedadYTemperatura()
+			return makeResponse(dj, msg, code)
+		elif obj['Endpoint'] == 'agregarProgramacion':
+			dataDict = json.loads(obj['JsonBodyContent'])
+			dj, msg, code = self.endpoints.addProgramacion(dataDict)
+			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'editarProgramacion':
+			dataDict = json.loads(obj['JsonBodyContent'])
+			dj, msg, code = self.endpoints.editarProgramacion(dataDict)
+			return makeResponse(dj, msg, code)
+		elif obj['Endpoint'] == 'fanExtra':
+			prender = obj['GetParameters'][0]
+			dj, msg, code = self.endpoints.fanExtra(prender)
+			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'fanIntra':
+			prender = obj['GetParameters'][0]
+			dj, msg, code = self.endpoints.fanIntra(prender)
+			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'luz':
+			prender = obj['GetParameters'][0]
+			dj, msg, code = self.endpoints.luz(prender)
+			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'regarSegundos':
+			segundos = obj['GetParameters'][0]
+			dj, msg, code = self.endpoints.regarSegundos(segundos)
+			return makeResponse(dj, msg, code)
+		elif obj['Endpoint'] == 'cambiarEstadoProgramacion':
+			idProgramacion = obj['GetParameters'][0]
+			estado = obj['GetParameters'][1]
+			dj, msg, code = self.endpoints.cambiarEstadoProgramacion(idProgramacion, estado)
+			return makeResponse(dj, msg, code)	
 		return Respuesta(404, { 'error': 'No se encontro el endpoint solicitado' })
 
 	def processMessage(self, message):
 		with self.app.app_context():
-			print(str(message))
 			try:
 				msgObj = jsonpickle.decode(message)
 				if self._checkPermission(msgObj['User'], msgObj['Password']):
@@ -103,5 +146,4 @@ class Respuesta(object):
 			self.Success = True
 		else:
 			self.Success = False
-		print str(result).encode("ascii")
-		self.Result = str(result).encode("ascii")
+		self.Result = str(result)
