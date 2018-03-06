@@ -1,0 +1,1 @@
+loggerRoute = '/tmp/indoor.log'

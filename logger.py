@@ -1,11 +1,12 @@
 import logging
+import configuration
 
 class Logger(object):
 	basiclogger = None
 
 	def __init__(self, name):
 		self.basiclogger = logging.getLogger(name)
-		hdlr = logging.FileHandler('/tmp/indoor.log')
+		hdlr = logging.FileHandler(configuration.loggerRoute)
 		formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s -> %(message)s')
 		hdlr.setFormatter(formatter)
 		self.basiclogger.addHandler(hdlr) 

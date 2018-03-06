@@ -7,10 +7,10 @@ import gpiotasks
 from sqlalchemy.orm import joinedload
 import distutils
 from distutils import util
+
 from logger import Logger
 log = Logger(__name__)
 log.info('app iniciando') 
-
 
 from os.path import expanduser
 home = expanduser("~")
