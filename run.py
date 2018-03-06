@@ -7,13 +7,14 @@ import gpiotasks
 from sqlalchemy.orm import joinedload
 import distutils
 from distutils import util
-import os
-
 from logger import Logger
 log = Logger(__name__)
 log.info('app iniciando') 
 
-file_path = os.path.abspath(os.getcwd())+"/db/indoor.db"
+
+from os.path import expanduser
+home = expanduser("~")
+file_path = home + "/indoor-config/db/indoor.db"
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path
