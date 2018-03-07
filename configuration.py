@@ -1,1 +1,5 @@
 loggerRoute = '/tmp/indoor.log'
+queueUrl = 'alfrescas.cipres.io'
+queueName = 'rpc_queue'
+queueUser = 'test'
+queuePassword = 'ratablanca'

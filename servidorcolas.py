@@ -5,6 +5,8 @@ import jsonpickle
 from logger import Logger
 log = Logger(__name__)
 
+import configuration
+
 from modelos import Usuario
 
 from flask import jsonify
@@ -27,12 +29,12 @@ class ServidorCola(threading.Thread):
 	app = None
 	endpoints = None
 	
-	def __init__(self, direccion, app, endpoints):
+	def __init__(self, queueUrl, queueName, queueUser, queuePassword, app, endpoints):
 		threading.Thread.__init__(self)
-		credentials = pika.PlainCredentials('test', 'ratablanca')
-		self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=direccion, credentials=credentials))
+		credentials = pika.PlainCredentials(queueUser, queuePassword)
+		self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=queueUrl, credentials=credentials))
 		self.channel = self.connection.channel()
-		self.channel.queue_declare(queue='rpc_queue')
+		self.channel.queue_declare(queue=queueName)
 		self.app = app
 		self.endpoints = endpoints
 		

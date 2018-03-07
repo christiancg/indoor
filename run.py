@@ -10,7 +10,9 @@ from distutils import util
 
 from logger import Logger
 log = Logger(__name__)
-log.info('app iniciando') 
+log.info('app iniciando')
+
+import configuration 
 
 from os.path import expanduser
 home = expanduser("~")
@@ -122,7 +124,7 @@ with app.app_context():
 		log.exception(ex)
 		print traceback.format_exc()
 	try:
-		cola = servidorcolas.ServidorCola('alfrescas.cipres.io', app, ep)
+		cola = servidorcolas.ServidorCola(configuration.queueUrl, configuration.queueName, configuration.queueUser, configuration.queuePassword, app, ep)
 		cola.start()
 	except Exception, ex:
 		log.exception(ex)
