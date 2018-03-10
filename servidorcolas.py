@@ -103,6 +103,10 @@ class ServidorCola(threading.Thread):
 			estado = obj['GetParameters'][1]
 			dj, msg, code = self.endpoints.cambiarEstadoProgramacion(idProgramacion, estado)
 			return makeResponse(dj, msg, code)	
+		elif obj['Endpoint'] == 'borrarProgramacion':
+			idProgramacion = obj['GetParameters'][0]
+			dj, msg, code = self.endpoints.borrarProgramacion(idProgramacion)
+			return makeResponse(dj, msg, code)
 		return Respuesta(404, { 'error': 'No se encontro el endpoint solicitado' })
 
 	def processMessage(self, message):

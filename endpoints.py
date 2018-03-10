@@ -229,7 +229,22 @@ class Endpoints(object):
 			log.exception(ex)
 			print traceback.format_exc()
 			return False, ex, 500
-
+			
+	def borrarProgramacion(self, id):
+		try:
+			prog = modelos.Programacion.query.filter(modelos.Programacion.id==id).first()
+			if prog is None:
+				msg = json.dumps({'resultado': 'No se encontro la programacion a borrar'})
+				return False, msg, 400
+			modelos.db.session.delete(prog)
+			modelos.db.session.commit()
+			msg = json.dumps({'resultado': 'programacion borrada' })
+			return False, msg, 200
+		except Exception,ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, ex, 500
+			
 	def obtenerProgramaciones(self):
 		try:
 			lprog = modelos.Programacion.query.all()

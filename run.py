@@ -198,6 +198,12 @@ def editarProgramacion():
 def cambiarEstadoProgramacion(id, estado):
 	dj, msg, code = ep.cambiarEstadoProgramacion(id, estado)
 	return finalizarRespuesta(dj, msg, code)
+	
+@app.route('/borrarProgramacion/<id>', methods=['DELETE'])
+@requires_auth
+def borrarProgramacion(id):
+	dj, msg, code = ep.borrarProgramacion(id)
+	return finalizarRespuesta(dj, msg, code)
 
 @app.route('/obtenerProgramaciones')
 @requires_auth
