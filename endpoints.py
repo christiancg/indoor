@@ -140,14 +140,14 @@ class Endpoints(object):
 			prender = dataDict['prender']
 			strhorario1 = dataDict['horario1']
 			horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
-			if 'horario2' in dataDict:
-				strhorario2 = dataDict['horario2']
-				if strhorario2:
-					horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
-					if horario2 > horario1:
-						nuevaProg = modelos.Programacion(desc,config,True,horario1,horario2)
+			if 'duracion' in dataDict:
+				strduracion = dataDict['duracion']
+				if strduracion:
+					duracion = int(strduracion)
+					if duracion > 0:
+						nuevaProg = modelos.Programacion(desc,config,True,horario1,duracion)
 					else:
-						msg = json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' })
+						msg = json.dumps({'resultado': 'La duracion debe ser mayor a 0' })
 						return False, msg, 400
 				else:
 					nuevaProg = modelos.Programacion(desc,config,prender,horario1)
@@ -176,18 +176,18 @@ class Endpoints(object):
 			prender = dataDict['prender']
 			strhorario1 = dataDict['horario1']
 			horario1 = datetime.time(int(strhorario1.split(':')[0]),int(strhorario1.split(':')[1]),int(strhorario1.split(':')[2]))
-			if 'horario2' in dataDict:
-				strhorario2 = dataDict['horario2']
-				if strhorario2:
-					horario2 = datetime.time(int(strhorario2.split(':')[0]),int(strhorario2.split(':')[1]),int(strhorario2.split(':')[2]))
-					if horario2 > horario1:
+			if 'duracion' in dataDict:
+				strduracion = dataDict['duracion']
+				if strduracion:
+					duracion = int(strduracion)
+					if duracion > 0:
 						prog.configgpio = config
 						prog.desc = desc
 						prog.prender = prender
 						prog.horario1 = horario1
-						prog.horario2 = horario2
+						prog.duracion = duracion
 					else:
-						msg = json.dumps({'resultado': 'el horario2 debe ser mayor a horario1' })
+						msg = json.dumps({'resultado': 'La duracion debe ser mayor a 0' })
 						return False, msg, 400
 				else:
 						prog.configgpio = config

@@ -43,7 +43,7 @@ class CorredorTareas(threading.Thread):
 							else:
 								self.gpioluz.apagarLuz()
 						elif prog.configgpio.desc == 'bomba':
-							segundos = prog.horario2 - prog.horario1
+							segundos = prog.duracion
 							intsegs = int(segundos)
 							self.gpiobomba.regarSegundos(intsegs)
 						elif prog.configgpio.desc == 'humytemp':

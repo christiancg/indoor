@@ -54,15 +54,15 @@ class Programacion(db.Model):
 	configgpio = db.relationship('ConfigGpio')
 	prender = db.Column(db.Boolean)
 	horario1 = db.Column(db.Time)
-	horario2 = db.Column(db.Time)
+	duracion = db.Column(db.Integer)
 	habilitado = db.Column(db.Boolean)
-	def __init__(self,desc,configgpio,prender,horario1,horario2=None):
+	def __init__(self,desc,configgpio,prender,horario1,duracion=None):
 		self.desc = desc
 		self.configgpio = configgpio
 		self.prender = prender
 		self.horario1 = horario1
-		if horario2 is not None:
-			self.horario2 = horario2
+		if duracion is not None:
+			self.duracion = duracion
 		self.habilitado = True
 	def __repr__(self):
 		return '<Programacion %r>' % self.id
