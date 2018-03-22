@@ -5,8 +5,6 @@ import traceback
 import time
 import gpiotasks
 from sqlalchemy.orm import joinedload
-import distutils
-from distutils import util
 
 from logger import Logger
 log = Logger(__name__)
@@ -52,6 +50,14 @@ def saveConfigToDb(id,desc):
 		log.exception(ex)
 		print traceback.format_exc()
 		
+def deleteConfigFromDb(todelete):
+	try:
+		modelos.db.session.delete(todelete)
+		modelos.db.session.commit()
+	except Exception, ex:
+		log.exception(ex)
+		print traceback.format_exc()
+		
 def saveEventToDb(desc,configgpio):
 	try:
 		toadd = modelos.Evento(datetime.datetime.now(),desc,configgpio)
@@ -75,42 +81,74 @@ with app.app_context():
 	modelos.db.create_all()
 	#primero configuracion de las interfaces fisicas
 	try:
-		lconfig = modelos.ConfigGpio.query.all()
-		for config in lconfig:
-			if config.desc == 'luz':
-				gpioluz = gpiotasks.GpioLuz(config.id)
-				if config.estado:
-					time.sleep(5)
-					gpioluz.prenderLuz()
-			elif config.desc == 'bomba':
-				gpiobomba = gpiotasks.GpioBomba(config.id)
-			elif config.desc == 'humytemp':
-				gpiohumytemp = gpiotasks.GpioHumYTemp(config.id)
-			elif config.desc == 'fanintra':
-				gpiofanintra = gpiotasks.GpioFanIntra(config.id)
-				if config.estado:
-					time.sleep(5)
-					gpiofanintra.prenderFanIntra()
-			elif config.desc == 'fanextra':
-				gpiofanextra = gpiotasks.GpioFanExtra(config.id)
-				if config.estado:
-					time.sleep(5)
-					gpiofanextra.prenderFanExtra()
-		if gpioluz is None:
-			saveConfigToDb(13,'luz')
+		dbluz = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
+		if configuration.tiene_luz:
 			gpioluz = gpiotasks.GpioLuz(13)
-		if gpiobomba is None:
-			saveConfigToDb(19,'bomba')
+			if dbluz is None:
+				saveConfigToDb(13,'luz')
+			elif dbluz.estado:
+				time.sleep(5)
+				gpioluz.prenderLuz()
+		else:
+			if dbluz is not None:
+				deleteConfigFromDb(dbluz)
+		dbbomba = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='bomba').first()
+		if configuration.tiene_bomba:
 			gpiobomba = gpiotasks.GpioBomba(19)
-		if gpiohumytemp is None:
-			saveConfigToDb(4,'humytemp')
+			if dbbomba is None:
+				saveConfigToDb(19,'bomba')
+		else:
+			if dbbomba is not None:
+				deleteConfigFromDb(dbbomba)
+		dbhumytemp = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
+		if configuration.tiene_humytemp:
 			gpiohumytemp = gpiotasks.GpioHumYTemp(4)
-		if gpiofanintra is None:
-			saveConfigToDb(17,'fanintra')
+			if dbhumytemp is None:
+				saveConfigToDb(4,'humytemp')
+		else:
+			if dbhumytemp is not None:
+				deleteConfigFromDb(dbhumytemp)
+		dbfanintra = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
+		if configuration.tiene_fanintra:
 			gpiofanintra = gpiotasks.GpioFanIntra(17)
-		if gpiofanextra is None:
-			saveConfigToDb(18,'fanextra')
-			gpiofanextra = gpiotasks.GpioFanExtra(27)
+			if dbfanintra is None:
+				saveConfigToDb(17,'fanintra')
+			elif dbfanintra.estado:
+				time.sleep(5)
+				gpiofanintra.prenderFanIntra()
+		else:
+			if dbfanintra is not None:
+				deleteConfigFromDb(dbfanintra)
+		dbfanextra = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
+		if configuration.tiene_fanextra:
+			gpiofanextra = gpiotasks.GpioFanExtra(18)
+			if dbfanextra is None:
+				saveConfigToDb(18,'fanextra')
+			elif dbfanextra.estado:
+				time.sleep(5)
+				gpiofanextra.prenderFanExtra()
+		else:
+			if dbfanextra is not None:
+				deleteConfigFromDb(dbfanextra)
+			
+		#~ lconfig = modelos.ConfigGpio.query.all()
+		#~ for config in lconfig:
+			#~ if config.desc == 'luz':
+				#~ gpioluz = gpiotasks.GpioLuz(config.id)
+				#~ if config.estado:
+					#~ time.sleep(5)
+					#~ gpioluz.prenderLuz()
+			#~ elif config.desc == 'fanintra':
+				#~ gpiofanintra = gpiotasks.GpioFanIntra(config.id)
+				#~ if config.estado:
+					#~ time.sleep(5)
+					#~ gpiofanintra.prenderFanIntra()
+			#~ elif config.desc == 'fanextra':
+				#~ gpiofanextra = gpiotasks.GpioFanExtra(config.id)
+				#~ if config.estado:
+					#~ time.sleep(5)
+					#~ gpiofanextra.prenderFanExtra()
+					
 	except Exception, ex:
 		log.exception(ex)
 		print traceback.format_exc()

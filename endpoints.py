@@ -36,21 +36,23 @@ class Endpoints(object):
 	
 	def luz(self, prender):
 		try:
-			#log.info('llego parametro sin procesar: ' + str(prender))
 			bprender = util.strtobool(prender)
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='luz').first()
-			#log.info('llego parametro procesado: ' + str(bprender))
-			status = ''
-			if bprender:
-				#log.info('entro por prender')
-				status = 'luz prendida'
-				self.gpioluz.prenderLuz()
+			if config is not None:
+				status = ''
+				if bprender:
+					#log.info('entro por prender')
+					status = 'luz prendida'
+					self.gpioluz.prenderLuz()
+				else:
+					status = 'luz apagada'
+					self.gpioluz.apagarLuz()
+				saveEventToDb(status, config)
+				msg = json.dumps({'resultado' : status})
+				return False, msg, 200
 			else:
-				status = 'luz apagada'
-				self.gpioluz.apagarLuz()
-			saveEventToDb(status, config)
-			msg = json.dumps({'resultado' : status})
-			return False, msg, 200
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception, ex:
 			log.exception(ex)
 			print traceback.format_exc()
@@ -60,16 +62,20 @@ class Endpoints(object):
 		try:
 			bprender = util.strtobool(prender)
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanintra').first()
-			status = ''
-			if bprender:
-				status = 'Fan intracion prendido'
-				self.gpiofanintra.prenderFanIntra()
+			if config is not None:
+				status = ''
+				if bprender:
+					status = 'Fan intracion prendido'
+					self.gpiofanintra.prenderFanIntra()
+				else:
+					status = 'Fan intracion apagado'
+					self.gpiofanintra.apagarFanIntra()		
+				saveEventToDb(status, config)
+				msg = json.dumps({'resultado' : status})
+				return False, msg, 200
 			else:
-				status = 'Fan intracion apagado'
-				self.gpiofanintra.apagarFanIntra()		
-			saveEventToDb(status, config)
-			msg = json.dumps({'resultado' : status})
-			return False, msg, 200
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception, ex:
 			log.exception(ex)
 			print traceback.format_exc()
@@ -79,16 +85,20 @@ class Endpoints(object):
 		try:
 			bprender = util.strtobool(prender)
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='fanextra').first()
-			status = ''
-			if bprender:
-				status = 'Fan extraccion prendido'
-				self.gpiofanextra.prenderFanExtra()
+			if config is not None:
+				status = ''
+				if bprender:
+					status = 'Fan extraccion prendido'
+					self.gpiofanextra.prenderFanExtra()
+				else:
+					status = 'Fan extraccion apagado'
+					self.gpiofanextra.apagarFanExtra()	
+				saveEventToDb(status, config)
+				msg = json.dumps({'resultado' : status})
+				return False, msg, 200
 			else:
-				status = 'Fan extraccion apagado'
-				self.gpiofanextra.apagarFanExtra()	
-			saveEventToDb(status, config)
-			msg = json.dumps({'resultado' : status})
-			return False, msg, 200
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception, ex:
 			log.exception(ex)
 			print traceback.format_exc()
@@ -98,10 +108,14 @@ class Endpoints(object):
 		try:
 			desc = 'regado ' + segs + ' segundos'
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='bomba').first()
-			saveEventToDb(desc, config)
-			self.gpiobomba.regarSegundos(segs)
-			msg = json.dumps({'resultado' : desc})
-			return False, msg, 200
+			if config is not None:
+				saveEventToDb(desc, config)
+				self.gpiobomba.regarSegundos(segs)
+				msg = json.dumps({'resultado' : desc})
+				return False, msg, 200
+			else:
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception,ex:
 			log.exception(ex)
 			print traceback.format_exc()
@@ -118,13 +132,17 @@ class Endpoints(object):
 			
 	def humedadYTemperatura(self):
 		try:
-			temp, hum = self.gpiohumytemp.medir()
-			devolver = { 'humedad' : hum , 'temperatura' : temp }
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='humytemp').first()
-			strresponse = str(devolver)
-			saveEventToDb(strresponse, config)
-			msg = json.dumps(devolver)
-			return False, msg, 200
+			if config is not None:
+				temp, hum = self.gpiohumytemp.medir()
+				devolver = { 'humedad' : hum , 'temperatura' : temp }
+				strresponse = str(devolver)
+				saveEventToDb(strresponse, config)
+				msg = json.dumps(devolver)
+				return False, msg, 200
+			else:
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception,ex:
 			log.exception(ex)
 			print traceback.format_exc()

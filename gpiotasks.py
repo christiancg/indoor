@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO           # import RPi.GPIO module  
 import time
+import traceback
 import pigpio
 import DHT22
 import modelos
