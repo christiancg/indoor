@@ -28,7 +28,11 @@ try:
 					if index > 0:
 						parametro = line[0:index]
 						valor = line[index+1:].rstrip()
-						boolvalor = util.strtobool(valor)
+						try:
+							boolvalor = util.strtobool(valor)
+						except:
+							print 'Error al leer el valor del parametro: ' + parametro + '. Los valores validos son true o false -> recibido: ' + valor
+							boolvalor = False
 						print parametro + ' ' + valor
 						if parametro == 'luz':
 							tiene_luz=boolvalor
