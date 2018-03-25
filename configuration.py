@@ -13,6 +13,7 @@ tiene_humytemp=False
 tiene_fanintra=False
 tiene_fanextra=False
 tiene_humtierra=False
+tiene_camara=False
 
 from os.path import expanduser
 home = expanduser("~")
@@ -41,6 +42,8 @@ try:
 							tiene_fanextra=boolvalor
 						elif parametro == 'humtierra':
 							tiene_humtierra=boolvalor
+						elif parametro == 'camara':
+							tiene_camara=boolvalor
 except Exception, ex:
 	import traceback
 	print traceback.format_exc()

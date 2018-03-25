@@ -304,20 +304,25 @@ class Endpoints(object):
 			
 	def obtenerImagenIndoor(self):
 		try:
-			result = {}
-			with Camara(30) as cam:
-				tomo, imagen = cam.obtenerImagen()
-				result['status'] = tomo
-				if tomo:
-					date = str(datetime.datetime.now())
-					result = { 'status':tomo, 'b64image': imagen, 'date': date }
+			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='camara').first()
+			if config is not None:
+				result = {}
+				with Camara(30) as cam:
+					tomo, imagen = cam.obtenerImagen()
+					result['status'] = tomo
+					if tomo:
+						date = str(datetime.datetime.now())
+						result = { 'status':tomo, 'b64image': imagen, 'date': date }
+					else:
+						result = { 'status':tomo, 'msg': imagen }
+				msg = json.dumps(result)
+				if result['status']:
+					return False, msg, 200
 				else:
-					result = { 'status':tomo, 'msg': imagen }
-			msg = json.dumps(result)
-			if result['status']:
-				return False, msg, 200
+					return False, msg, 500
 			else:
-				return False, msg, 500
+				msg = json.dumps({'resultado' : 'esta funcionalidad no se encuentra habilitada'})
+				return False, msg, 400
 		except Exception,ex:
 			log.exception(ex)
 			print traceback.format_exc()

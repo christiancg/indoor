@@ -72,6 +72,7 @@ gpiobomba = None
 gpiohumytemp = None
 gpiofanintra = None
 gpiofanextra = None
+camara = None
 
 from endpoints import Endpoints
 ep = None
@@ -130,6 +131,13 @@ with app.app_context():
 		else:
 			if dbfanextra is not None:
 				deleteConfigFromDb(dbfanextra)
+		dbcamara = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='camara').first()
+		if configuration.tiene_camara:
+			if dbcamara is None:
+				saveConfigToDb(99,'camara')
+		else:
+			if dbcamara is not None:
+				deleteConfigFromDb(dbcamara)
 			
 		#~ lconfig = modelos.ConfigGpio.query.all()
 		#~ for config in lconfig:
