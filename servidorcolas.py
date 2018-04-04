@@ -5,8 +5,6 @@ import jsonpickle
 from logger import Logger
 log = Logger(__name__)
 
-import configuration
-
 from modelos import Usuario
 
 from flask import jsonify
@@ -28,6 +26,7 @@ class ServidorCola(threading.Thread):
 	channel = None
 	app = None
 	endpoints = None
+	queueName = None
 	
 	def __init__(self, queueUrl, queueName, queueUser, queuePassword, app, endpoints):
 		threading.Thread.__init__(self)
@@ -37,6 +36,7 @@ class ServidorCola(threading.Thread):
 		self.channel.queue_declare(queue=queueName)
 		self.app = app
 		self.endpoints = endpoints
+		self.queueName = queueName
 		
 	def _checkPermission(self, user, password):
 		try:
@@ -137,7 +137,7 @@ class ServidorCola(threading.Thread):
 
 	def run(self):
 		self.channel.basic_qos(prefetch_count=1)
-		self.channel.basic_consume(self.on_request, queue='rpc_queue')
+		self.channel.basic_consume(self.on_request, queue=self.queueName)
 		print(" [x] Awaiting RPC requests")
 		log.info(" [x] Awaiting RPC requests")
 		self.channel.start_consuming()
