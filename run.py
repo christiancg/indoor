@@ -57,15 +57,6 @@ def deleteConfigFromDb(todelete):
 	except Exception, ex:
 		log.exception(ex)
 		print traceback.format_exc()
-		
-def saveEventToDb(desc,configgpio):
-	try:
-		toadd = modelos.Evento(datetime.datetime.now(),desc,configgpio)
-		modelos.db.session.add(toadd)
-		modelos.db.session.commit()
-	except Exception, ex:
-		log.exception(ex)
-		print traceback.format_exc()
 
 gpioluz = None
 gpiobomba = None
