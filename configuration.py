@@ -16,10 +16,13 @@ tiene_fanextra=False
 tiene_humtierra=False
 tiene_camara=False
 
+users = []
+
 from os.path import expanduser
 home = expanduser("~")
 gpioconfig_path = home + "/indoor-config/gpio.config"
 serverconfig_path = home + "/indoor-config/server.config"
+usersconfig_path = home + "/indoor-config/users.config"
 
 def leerConfigGpio():
 	global tiene_luz
@@ -90,7 +93,26 @@ def leerConfigServer():
 		import traceback
 		print traceback.format_exc()
 		
+def leerUsers():
+	global users
+	try:
+		with open(usersconfig_path) as f:
+			for line in f:
+				if line:
+					if '=' in line:
+						index = line.find('=')
+						if index > 0:
+							user = line[0:index]
+							password = line[index+1:].rstrip()
+							print user + ' ' + password
+							users.append((user,password))
+	except Exception, ex:
+		import traceback
+		print traceback.format_exc()
+		
 #leo la configuracion gpio del archivo de configuracion
 leerConfigGpio()
 #leo la configuracion de server del archivo de configuracion
 leerConfigServer()
+#leo los usuarios del archivo de configuracion
+leerUsers()

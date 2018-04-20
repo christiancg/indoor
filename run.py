@@ -57,6 +57,23 @@ def deleteConfigFromDb(todelete):
 	except Exception, ex:
 		log.exception(ex)
 		print traceback.format_exc()
+		
+def truncateTableUsers():
+	try:
+		modelos.Usuario.query.delete()
+		modelos.db.session.commit()
+	except Exception, ex:
+		log.exception(ex)
+		print traceback.format_exc()
+
+def saveUserToDb(nombre,password):
+	try:
+		toadd = modelos.Usuario(nombre,password)
+		modelos.db.session.add(toadd)
+		modelos.db.session.commit()
+	except Exception, ex:
+		log.exception(ex)
+		print traceback.format_exc()
 
 gpioluz = None
 gpiobomba = None
@@ -130,23 +147,10 @@ with app.app_context():
 			if dbcamara is not None:
 				deleteConfigFromDb(dbcamara)
 			
-		#~ lconfig = modelos.ConfigGpio.query.all()
-		#~ for config in lconfig:
-			#~ if config.desc == 'luz':
-				#~ gpioluz = gpiotasks.GpioLuz(config.id)
-				#~ if config.estado:
-					#~ time.sleep(5)
-					#~ gpioluz.prenderLuz()
-			#~ elif config.desc == 'fanintra':
-				#~ gpiofanintra = gpiotasks.GpioFanIntra(config.id)
-				#~ if config.estado:
-					#~ time.sleep(5)
-					#~ gpiofanintra.prenderFanIntra()
-			#~ elif config.desc == 'fanextra':
-				#~ gpiofanextra = gpiotasks.GpioFanExtra(config.id)
-				#~ if config.estado:
-					#~ time.sleep(5)
-					#~ gpiofanextra.prenderFanExtra()
+		# Agrego users a la base de datos
+		truncateTableUsers()
+		for (user, password) in configuration.users:
+			saveUserToDb(user, password)
 					
 	except Exception, ex:
 		log.exception(ex)
