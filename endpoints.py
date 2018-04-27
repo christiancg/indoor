@@ -307,7 +307,7 @@ class Endpoints(object):
 			config = modelos.ConfigGpio.query.filter(modelos.ConfigGpio.desc=='camara').first()
 			if config is not None:
 				result = {}
-				with Camara(30) as cam:
+				with Camara() as cam:
 					tomo, imagen = cam.obtenerImagen()
 					result['status'] = tomo
 					if tomo:

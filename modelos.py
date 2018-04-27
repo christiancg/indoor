@@ -77,4 +77,12 @@ class Usuario(db.Model):
 	def __repr__(self):
 		return '<Usuario %r>' % self.nombre
 		
+class Foto(db.Model):
+	__tablename__ = 'fotos'
+	fecha = db.Column(db.DateTime, primary_key=True)
+	def __init__(self,fecha):
+		self.fecha = fecha
+	def __repr__(self):
+		return '<Foto %r>' % self.fecha
+		
 
