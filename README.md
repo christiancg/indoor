@@ -55,3 +55,6 @@ Setup del sistema (https://www.pyimagesearch.com/2015/10/26/how-to-install-openc
 
 ## Chequear que sea hayan instalado las librerias de OpenCV
 * ls -l /usr/local/lib/python2.7/site-packages/ | grep cv2
+
+# Instalacion de pygame para la camara
+ sudo pip install pygame 
