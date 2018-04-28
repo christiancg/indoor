@@ -311,6 +311,7 @@ class Endpoints(object):
 					tomo, imagen = cam.obtenerImagen()
 					result['status'] = tomo
 					if tomo:
+						saveEventToDb('Foto tomada', config)
 						date = str(datetime.datetime.now())
 						result = { 'status':tomo, 'b64image': imagen, 'date': date }
 					else:
