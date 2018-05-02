@@ -12,9 +12,7 @@ log.info('app iniciando')
 
 import configuration 
 
-from os.path import expanduser
-home = expanduser("~")
-file_path = home + "/indoor-config/db/indoor.db"
+file_path = "/home/pi/indoor-config/db/indoor.db"
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + file_path

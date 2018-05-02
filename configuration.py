@@ -18,11 +18,9 @@ tiene_camara=False
 
 users = []
 
-from os.path import expanduser
-home = expanduser("~")
-gpioconfig_path = home + "/indoor-config/gpio.config"
-serverconfig_path = home + "/indoor-config/server.config"
-usersconfig_path = home + "/indoor-config/users.config"
+gpioconfig_path = "/home/pi/indoor-config/gpio.config"
+serverconfig_path = "/home/pi/indoor-config/server.config"
+usersconfig_path = "/home/pi/indoor-config/users.config"
 
 def leerConfigGpio():
 	global tiene_luz
