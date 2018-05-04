@@ -1,3 +1,4 @@
+import time
 import pika
 import threading
 import traceback
@@ -22,21 +23,20 @@ def makeResponse(dj, msg, code):
 		return Respuesta(code, msg)
 
 class ServidorCola(threading.Thread):
-	connection = None
-	channel = None
 	app = None
 	endpoints = None
 	queueName = None
+	credentials = None
+	queueUrl = None
 	
 	def __init__(self, queueUrl, queueName, queueUser, queuePassword, app, endpoints):
 		threading.Thread.__init__(self)
-		credentials = pika.PlainCredentials(queueUser, queuePassword)
-		self.connection = pika.BlockingConnection(pika.ConnectionParameters(host=queueUrl, credentials=credentials))
-		self.channel = self.connection.channel()
-		self.channel.queue_declare(queue=queueName)
+		self.credentials = pika.PlainCredentials(queueUser, queuePassword)
 		self.app = app
 		self.endpoints = endpoints
 		self.queueName = queueName
+		self.queueUrl = queueUrl
+		
 		
 	def _checkPermission(self, user, password):
 		try:
@@ -136,11 +136,20 @@ class ServidorCola(threading.Thread):
 			print traceback.format_exc()
 
 	def run(self):
-		self.channel.basic_qos(prefetch_count=1)
-		self.channel.basic_consume(self.on_request, queue=self.queueName)
-		print(" [x] Awaiting RPC requests")
-		log.info(" [x] Awaiting RPC requests")
-		self.channel.start_consuming()
+		while True:
+			try:
+				connection = pika.BlockingConnection(pika.ConnectionParameters(host=self.queueUrl, credentials=self.credentials))
+				channel = connection.channel()
+				channel.queue_declare(queue=self.queueName)
+				channel.basic_qos(prefetch_count=1)
+				channel.basic_consume(self.on_request, queue=self.queueName)
+				print(" [x] Awaiting RPC requests")
+				log.info(" [x] Awaiting RPC requests")
+				channel.start_consuming()
+			except Exception:
+				print("Se desconecto de la cola. Volviendo a conectar en 30 segundos")
+				log.error("Se desconecto de la cola. Volviendo a conectar en 30 segundos")
+				time.sleep(30)
 		
 class Respuesta(object):
 	StatusCode = 0
