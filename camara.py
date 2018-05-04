@@ -50,16 +50,23 @@ class Camara(object):
 	RUTA_GUARDADO = '/home/pi/indoor-config/images/'
 	
 	def __init__(self):
-		pygame.init()
-		pygame.camera.init()
-		self.CAMARA = pygame.camera.Camera("/dev/video0",(800,600))
-		self.CAMARA.start()
+		try:
+			pygame.camera.init()
+			self.CAMARA = pygame.camera.Camera("/dev/video0",(800,600))
+			self.CAMARA.start()
+		except Exception, ex:
+			log.exception(ex)
+			print traceback.format_exc()
 	
 	def __enter__(self):
 		return self
 		
-	def __exit__(self, exc_type, exc_value, traceback):
-		self.CAMARA.stop()
+	def __exit__(self, exc_type, exc_value, traceback_other):
+		try:
+			self.CAMARA.stop()
+		except Exception, ex:
+			log.exception(ex)
+			print traceback.format_exc()
 			
 	def _guardarEnDB(self, fecha):
 		try:
@@ -71,14 +78,20 @@ class Camara(object):
 			print traceback.format_exc()
 			
 	def obtenerImagen(self):
-		image= self.CAMARA.get_image()
-		if image is not None:
-			date = datetime.datetime.now()
-			full_route = self.RUTA_GUARDADO + str(date) + '.jpg'
-			pygame.image.save(image, full_route)
-			with open(full_route, "rb") as image_file:
-				encoded_string = base64.b64encode(image_file.read())
-			self._guardarEnDB(date)
-			return True, encoded_string
-		else:
-			return False, 'La camara no esta disponible'
+		try:
+			image= self.CAMARA.get_image()
+			if image is not None:
+				date = datetime.datetime.now()
+				full_route = self.RUTA_GUARDADO + str(date) + '.jpg'
+				pygame.image.save(image, full_route)
+				with open(full_route, "rb") as image_file:
+					encoded_string = base64.b64encode(image_file.read())
+				self._guardarEnDB(date)
+				return True, encoded_string
+			else:
+				log.error('La camara no esta disponible')
+				return False, 'La camara no esta disponible'
+		except Exception, ex:
+			log.exception(ex)
+			print traceback.format_exc()
+			return False, 'Excepcion al obtener imagen'
