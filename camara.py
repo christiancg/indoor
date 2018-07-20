@@ -45,15 +45,28 @@ import modelos
 from logger import Logger
 log = Logger(__name__)
 
+import os.path
+
+def device_exists(path):
+        try:
+                return os.path.isfile(path)
+        except:
+                return False
+
 class Camara(object):
 	CAMARA = None
 	RUTA_GUARDADO = '/home/pi/indoor-config/images/'
-	
+	PATH = '/dev/video0'
+
 	def __init__(self):
 		try:
 			pygame.camera.init()
-			self.CAMARA = pygame.camera.Camera("/dev/video0",(800,600))
-			self.CAMARA.start()
+                        if device_exists(self.PATH):
+			        self.CAMARA = pygame.camera.Camera("/dev/video0",(800,600))
+			        self.CAMARA.start()
+                        else:
+                                print('camara no disponible')
+
 		except Exception, ex:
 			log.exception(ex)
 			print traceback.format_exc()
